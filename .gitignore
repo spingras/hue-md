@@ -3,6 +3,7 @@ node_modules/
 /site/
 /notepadpp-hue/dist/
 demo/index.html
+demo/playground.js
 corpus/
 *.obj
 *.lib

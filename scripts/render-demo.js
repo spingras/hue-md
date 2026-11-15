@@ -1,521 +1,346 @@
+// Builds the playground page (site/ for GitHub Pages, demo/ for local use).
+// The page's live output is produced by the real Hue packages, bundled from
+// scripts/playground-entry.js, so it can never differ from what users install.
 import { mkdirSync, readFileSync, writeFileSync, copyFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { build } from 'esbuild'
 import MarkdownIt from 'markdown-it'
 import hue, { css } from '../src/index.js'
-import { downgrade } from '../md-hue/src/downgrade.js'
 
+const url = (p) => new URL(p, import.meta.url)
 const md = new MarkdownIt().use(hue)
-const src = readFileSync(new URL('../demo/demo.hue.md', import.meta.url), 'utf8')
-const initialHtml = md.render(src)
-const initialDowngrade = downgrade(src)
+const src = readFileSync(url('../demo/demo.hue.md'), 'utf8')
+const version = JSON.parse(readFileSync(url('../package.json'), 'utf8')).version
+const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+const REL = 'https://github.com/spingras/hue-md/releases/latest/download/'
+const KOFI = 'https://ko-fi.com/hue_md'
+const PATREON = 'https://patreon.com/hue_md'
+const REPO = 'https://github.com/spingras/hue-md'
+
+// Install list. `early: true` marks plugins that only have automated tests so far.
+const INSTALL = [
+  {
+    group: 'Editors',
+    items: [
+      { name: 'VS Code', note: 'Also Cursor and Windsurf', text: 'Search for “Hue MD” in Extensions. Adds a live preview, editor colors and box snippets.', href: 'https://marketplace.visualstudio.com/items?itemName=spingras.hue-md', action: 'Open Marketplace', extra: { href: REL + 'hue-md-0.1.1.vsix', label: '.vsix' } },
+      { name: 'Notepad++', note: 'Windows x64', text: 'Download the zip and run install.ps1. Press Ctrl+Shift+H for the live preview.', href: REL + 'hue-md-npp-x64.zip', action: 'Download' },
+      { name: 'Obsidian', text: 'Shows Hue colors and boxes in your vault. Install steps are in the zip.', href: REL + 'hue-md-obsidian.zip', action: 'Download', early: true },
+      { name: 'Neovim', text: 'Editor colors and a :HueBox command. Install steps are in the zip.', href: REL + 'hue-md-nvim.zip', action: 'Download', early: true },
+      { name: 'Sublime Text and Emacs', text: 'Box snippets for Sublime Text and hue-md-mode.el for Emacs.', href: REL + 'hue-md-snippets.zip', action: 'Download', early: true }
+    ]
+  },
+  {
+    group: 'Command line and code',
+    items: [
+      { name: 'npm', text: 'Terminal viewer, GitHub downgrade, HTML export and the markdown-it plugin.', code: 'npm install -g hue-md', href: 'https://www.npmjs.com/package/hue-md', action: 'View on npm' },
+      { name: 'Stylesheet', text: 'Light and dark Hue colors for your own website.', href: REL + 'hue-md.css', action: 'Download' }
+    ]
+  },
+  {
+    group: 'Browser',
+    items: [
+      { name: 'Userscript', text: 'Shows Hue on github.com. Install it with Tampermonkey or Violentmonkey.', href: REL + 'hue-md.user.js', action: 'Install', early: true },
+      { name: 'Chrome and Edge', text: 'The same as the userscript, as an extension. Load the unzipped folder in developer mode.', href: REL + 'hue-md-browser.zip', action: 'Download', early: true }
+    ]
+  }
+]
+
+const BOXES = [
+  { kind: 'info', color: 'blue', title: 'Tip' },
+  { kind: 'ok', color: 'green', title: 'Done' },
+  { kind: 'note', color: 'purple', title: 'Note' },
+  { kind: 'warn', color: 'orange', title: 'Careful' },
+  { kind: '!', color: 'red', title: 'Stop' }
+]
+
+const installHtml = INSTALL.map((g) => `
+      <div class="install-group">
+        <h3>${g.group}</h3>
+        <ul class="install-list">${g.items.map((it) => `
+          <li class="install-row">
+            <div class="install-main">
+              <p class="install-name">${esc(it.name)}${it.note ? ` <span class="install-note">${esc(it.note)}</span>` : ''}${it.early ? ' <span class="tag">Early version</span>' : ''}</p>
+              <p class="install-text">${esc(it.text)}</p>${it.code ? `
+              <div class="cmd"><code>${esc(it.code)}</code><button class="copy" type="button" data-copy="${esc(it.code)}">Copy</button></div>` : ''}
+            </div>
+            <div class="install-actions">
+              <a class="btn" href="${it.href}">${esc(it.action)}</a>${it.extra ? `
+              <a class="btn btn-quiet" href="${it.extra.href}">${esc(it.extra.label)}</a>` : ''}
+            </div>
+          </li>`).join('')}
+        </ul>
+      </div>`).join('')
+
+const boxButtons = BOXES.map((b) => `<button class="chip" type="button" data-box="${esc(b.kind)}" data-title="${b.title}"><span class="dot" style="background:var(--hue-${b.color})"></span>${esc(b.kind)}</button>`).join('')
+
+const sunMoon = `<svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>`
 
 const pageHtml = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hue MD (hue-md) — Effortless Color & Callout Boxes for Markdown</title>
-<meta name="description" content="Readable-raw color spans and effortless callout boxes for Markdown (.hue.md). Works across Web, CLI, VS Code, Notepad++, and GitHub.">
+<title>Hue MD: color and boxes for Markdown</title>
+<meta name="description" content="Hue Markdown adds colored text and drawn boxes to Markdown. The source stays easy to read as plain text. Try it in your browser.">
 <style>
 ${css()}
 :root {
-  --surface: #ffffff;
-  --surface-subtle: #f6f8fa;
-  --border: #d0d7de;
-  --muted: #57606a;
+  --bg: #ffffff;
+  --bg-subtle: #f6f8fa;
+  --bg-inset: #eff2f5;
+  --line: #d0d7de;
+  --line-soft: #e4e8ec;
+  --text: #1f2328;
+  --muted: #59636e;
   --accent: #175cd3;
+  --term-bg: #0d1117;
+  --term-bar: #161b22;
+  --shadow: 0 1px 2px rgba(31,35,40,.06), 0 8px 24px rgba(31,35,40,.06);
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --surface: #0d1117;
-    --surface-subtle: #161b22;
-    --border: #30363d;
-    --muted: #8b949e;
-    --accent: #58a6ff;
+    --bg: #0d1117; --bg-subtle: #151b23; --bg-inset: #1a212b; --line: #30363d; --line-soft: #252c35;
+    --text: #e6edf3; --muted: #9198a1; --accent: #58a6ff; --term-bg: #010409; --term-bar: #0d1117;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+    color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --surface: #0d1117;
-  --surface-subtle: #161b22;
-  --border: #30363d;
-  --muted: #8b949e;
-  --accent: #58a6ff;
+  --bg: #0d1117; --bg-subtle: #151b23; --bg-inset: #1a212b; --line: #30363d; --line-soft: #252c35;
+  --text: #e6edf3; --muted: #9198a1; --accent: #58a6ff; --term-bg: #010409; --term-bar: #0d1117;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  color-scheme: dark;
 }
-* { box-sizing: border-box; }
-body {
-  font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  margin: 0;
-  background: var(--surface);
-  color: var(--hue-text);
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 var(--sans); }
+a { color: var(--accent); }
+code { font: .88em var(--mono); background: var(--bg-inset); padding: .12em .38em; border-radius: 5px; }
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+[id] { scroll-margin-top: 76px; }
+@media (max-width: 600px) { .wrap { padding: 0 16px; } }
+
+/* header */
+.top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line-soft); }
+.top .wrap { display: flex; align-items: center; gap: 24px; height: 60px; }
+.brand { display: flex; align-items: baseline; gap: 8px; color: var(--text); text-decoration: none; font-weight: 650; font-size: 1.05rem; }
+.brand small { color: var(--muted); font: 500 .75rem var(--mono); }
+.nav { display: flex; gap: 20px; margin-right: auto; }
+.nav a { color: var(--muted); text-decoration: none; font-size: .92rem; }
+.nav a:hover { color: var(--text); }
+.top-actions { display: flex; align-items: center; gap: 8px; }
+@media (max-width: 760px) { .nav { display: none; } .top .wrap { justify-content: space-between; } }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 36px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font: 600 .88rem var(--sans); text-decoration: none; cursor: pointer; white-space: nowrap; transition: border-color .15s, background .15s; }
+.btn:hover { border-color: var(--muted); }
+.btn:focus-visible, .chip:focus-visible, .tab:focus-visible, .copy:focus-visible, .icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn-primary { background: var(--text); border-color: var(--text); color: var(--bg); }
+.btn-primary:hover { opacity: .88; border-color: var(--text); }
+.btn-quiet { font-family: var(--mono); font-weight: 500; color: var(--muted); }
+.btn-kofi { background: #ff5e5b; border-color: #ff5e5b; color: #fff; }
+.btn-patreon { background: #f96854; border-color: #f96854; color: #fff; }
+.btn-kofi:hover, .btn-patreon:hover { border-color: transparent; opacity: .9; }
+.btn-sm { height: 32px; padding: 0 11px; font-size: .82rem; }
+.icon-btn { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); cursor: pointer; }
+.icon-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.icon-btn[data-mode="dark"] .i-moon, .icon-btn[data-mode="light"] .i-sun { display: none; }
+@media (max-width: 480px) { .top-actions .btn-kofi, .top-actions .btn-patreon { display: none; } }
+
+/* hero */
+.hero { padding-top: 64px; padding-bottom: 40px; }
+.eyebrow { font: 500 .78rem var(--mono); color: var(--muted); letter-spacing: .04em; margin: 0 0 16px; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.1rem); line-height: 1.08; letter-spacing: -.025em; margin: 0 0 18px; font-weight: 650; max-width: 16ch; }
+.hero .lead { font-size: 1.15rem; color: var(--muted); max-width: 58ch; margin: 0 0 28px; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* playground */
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin: 0 0 14px; }
+.section-head h2 { font-size: 1.35rem; letter-spacing: -.015em; margin: 0; font-weight: 650; }
+.section-head p { margin: 0; color: var(--muted); font-size: .92rem; }
+.playground { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--bg); box-shadow: var(--shadow); height: clamp(520px, 72vh, 760px); }
+.pane { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.pane + .pane { border-left: 1px solid var(--line); }
+.bar { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 8px 12px; background: var(--bg-subtle); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.file { font: 600 .82rem var(--mono); color: var(--text); margin-right: auto; display: flex; align-items: center; gap: 8px; }
+.file::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--hue-green); }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 9px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font: 500 .78rem var(--mono); cursor: pointer; }
+.chip:hover { border-color: var(--muted); }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.chip-label { font-size: .78rem; color: var(--muted); margin-right: 2px; }
+.editor-wrap { flex: 1; display: flex; min-height: 0; background: var(--bg); }
+.gutter { flex: none; width: 46px; padding: 16px 10px 16px 0; overflow: hidden; text-align: right; font: 13px/1.6 var(--mono); color: var(--muted); opacity: .6; user-select: none; background: var(--bg-subtle); border-right: 1px solid var(--line-soft); }
+.gutter span { display: block; }
+#editor { flex: 1; min-width: 0; border: 0; margin: 0; padding: 16px 18px; resize: none; outline: none; background: transparent; color: var(--text); font: 13px/1.6 var(--mono); white-space: pre; overflow: auto; tab-size: 2; }
+.tabs { display: flex; gap: 2px; padding: 3px; border-radius: 8px; background: var(--bg-inset); margin-right: auto; }
+.tab { height: 28px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 .82rem var(--sans); cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--bg); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.view { flex: 1; overflow: auto; min-height: 0; }
+.view[hidden] { display: none !important; }
+#view-preview { padding: 20px 26px; }
+#view-preview > :first-child { margin-top: 0; }
+#view-preview h1 { font-size: 1.7rem; letter-spacing: -.02em; padding-bottom: .3em; border-bottom: 1px solid var(--line-soft); }
+#view-preview h2 { font-size: 1.3rem; }
+#view-preview .hue-box { border-radius: 8px; }
+#view-terminal { background: var(--term-bg); padding: 0; display: flex; flex-direction: column; }
+.term-bar { display: flex; align-items: center; gap: 7px; padding: 10px 14px; background: var(--term-bar); border-bottom: 1px solid #21262d; font: 500 .75rem var(--mono); color: #8b949e; }
+.term-bar i { width: 10px; height: 10px; border-radius: 50%; background: #30363d; }
+.term-bar span { margin-left: 8px; }
+#terminal-out { flex: 1; margin: 0; padding: 16px 18px; color: #e6edf3; font: 13px/1.45 var(--mono); white-space: pre; overflow: auto; }
+.prompt { color: #3fb950; }
+#view-github pre { margin: 0; padding: 16px 20px; font: 13px/1.6 var(--mono); white-space: pre-wrap; word-break: break-word; }
+.status { padding: 0 12px; color: var(--hue-red); font-size: .82rem; }
+.status:empty { display: none; }
+@media (max-width: 900px) {
+  .playground { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .pane { height: 460px; }
+  .pane + .pane { border-left: 0; border-top: 1px solid var(--line); }
 }
-.container { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
-header {
-  border-bottom: 1px solid var(--border);
-  background: var(--surface-subtle);
-  padding: 14px 0;
+
+/* install */
+main > section.wrap { margin-top: 72px; }
+.install-group { margin-top: 28px; }
+.install-group h3 { font: 600 .78rem var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; }
+.install-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.install-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 24px; padding: 16px 20px; background: var(--bg); }
+.install-row + .install-row { border-top: 1px solid var(--line-soft); }
+.install-name { margin: 0; font-weight: 650; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.install-note { font-weight: 400; color: var(--muted); font-size: .88rem; }
+.tag { font: 500 .72rem var(--mono); color: var(--hue-orange); background: var(--hue-orange-bg); padding: 2px 8px; border-radius: 99px; }
+.install-text { margin: 3px 0 0; color: var(--muted); font-size: .93rem; }
+.install-actions { display: flex; gap: 8px; }
+.cmd { display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; padding: 4px 4px 4px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-subtle); }
+.cmd code { background: none; padding: 0; font-size: .86rem; }
+.copy { height: 26px; padding: 0 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--muted); font: 600 .75rem var(--sans); cursor: pointer; }
+@media (max-width: 640px) {
+  .install-row { grid-template-columns: minmax(0, 1fr); gap: 12px; }
 }
-.nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.2rem; text-decoration: none; color: inherit; }
-.brand-badge {
-  background: var(--hue-blue-bg);
-  color: var(--hue-blue);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.85rem;
-  padding: 2px 8px;
-  border-radius: 6px;
-}
-.nav-links { display: flex; align-items: center; gap: 12px; }
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--hue-text);
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-}
-.btn:hover { border-color: var(--accent); }
-.btn-primary { background: var(--hue-blue); color: #fff; border-color: var(--hue-blue); }
-.btn-sponsor { background: var(--hue-red-bg); color: var(--hue-red); border-color: var(--hue-red); }
-.hero { padding: 36px 0 24px; text-align: center; }
-.hero h1 { font-size: 2.4rem; margin: 0 0 10px; letter-spacing: -0.02em; }
-.hero p { font-size: 1.15rem; color: var(--muted); max-width: 700px; margin: 0 auto 18px; }
-.hero-badges { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 40px;
-}
-@media (max-width: 860px) { .info-grid { grid-template-columns: 1fr; } }
-.info-card {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface-subtle);
-  padding: 20px 24px;
-}
-.info-card h2 { margin: 0 0 10px; font-size: 1.25rem; }
-.info-card p { margin: 0 0 12px; color: var(--muted); font-size: 0.95rem; }
-.info-card ul { margin: 0 0 16px; padding-left: 20px; font-size: 0.94rem; }
-.info-card li { margin-bottom: 6px; }
-.support-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
-.downloads {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 12px;
-  margin-bottom: 28px;
-}
-.dl-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface-subtle);
-  text-decoration: none;
-  color: inherit;
-  text-align: left;
-  transition: transform 0.1s ease, border-color 0.1s ease;
-}
-.dl-card:hover { border-color: var(--accent); transform: translateY(-1px); }
-.dl-title { font-weight: 700; font-size: 0.98rem; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
-.dl-file { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.78rem; color: var(--accent); }
-.dl-desc { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
-.playground {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 40px;
-}
-@media (max-width: 860px) { .playground { grid-template-columns: 1fr; } }
-.pane {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  background: var(--surface);
-  min-height: 540px;
-}
-.pane-bar {
-  background: var(--surface-subtle);
-  border-bottom: 1px solid var(--border);
-  padding: 8px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-.quick-btns { display: flex; gap: 5px; flex-wrap: wrap; }
-.chip {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--hue-text);
-  border-radius: 4px;
-  padding: 2px 8px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.78rem;
-  cursor: pointer;
-}
-.chip:hover { border-color: var(--accent); }
-textarea#editor {
-  flex: 1;
-  width: 100%;
-  border: 0;
-  padding: 16px;
-  font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  background: var(--surface);
-  color: var(--hue-text);
-  resize: vertical;
-  outline: none;
-}
-.preview-body { padding: 18px 20px; flex: 1; overflow: auto; }
-.preview-body h1:first-child { margin-top: 0; }
-pre.downgrade-out {
-  margin: 0;
-  white-space: pre-wrap;
-  font: 13.5px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-}
-code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.9em;
-  background: rgba(127, 127, 127, 0.12);
-  padding: 0.15em 0.35em;
-  border-radius: 4px;
-}
-footer {
-  border-top: 1px solid var(--border);
-  padding: 24px 0 40px;
-  color: var(--muted);
-  font-size: 0.9rem;
-  text-align: center;
-}
+
+/* support */
+.support { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; border: 1px solid var(--line); border-radius: 12px; padding: 24px 28px; background: var(--bg-subtle); }
+.support h2 { margin: 0 0 4px; font-size: 1.2rem; font-weight: 650; }
+.support p { margin: 0; color: var(--muted); }
+.support-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+@media (max-width: 760px) { .support { grid-template-columns: 1fr; } }
+
+footer { margin-top: 64px; border-top: 1px solid var(--line-soft); padding: 28px 0 48px; color: var(--muted); font-size: .88rem; }
+footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+footer a { color: var(--muted); }
+footer a:hover { color: var(--text); }
 </style>
 </head>
 <body>
-<header>
-  <div class="container nav">
-    <a class="brand" href="#">
-      <span>Hue MD</span>
-      <span class="brand-badge">hue-md</span>
-    </a>
-    <div class="nav-links">
-      <button class="btn" id="themeBtn" type="button">Toggle Dark / Light</button>
-      <a class="btn btn-sponsor" href="https://ko-fi.com/hue_md" target="_blank" rel="noopener">☕ Ko-fi</a>
-      <a class="btn btn-sponsor" href="https://patreon.com/hue_md" target="_blank" rel="noopener">💖 Patreon</a>
-      <a class="btn" href="https://github.com/spingras/hue-md">GitHub (spingras/hue-md)</a>
-      <a class="btn btn-primary" href="https://github.com/spingras/hue-md/releases/latest">Releases</a>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#">Hue MD <small>v${version}</small></a>
+    <nav class="nav" aria-label="Main">
+      <a href="#playground">Playground</a>
+      <a href="#install">Install</a>
+      <a href="${REPO}">GitHub</a>
+    </nav>
+    <div class="top-actions">
+      <a class="btn btn-sm btn-kofi" href="${KOFI}" target="_blank" rel="noopener">Ko-fi</a>
+      <a class="btn btn-sm btn-patreon" href="${PATREON}" target="_blank" rel="noopener">Patreon</a>
+      <button class="icon-btn" id="theme" type="button" aria-label="Switch theme">${sunMoon}</button>
     </div>
   </div>
 </header>
 
-<main class="container">
-  <section class="hero">
-    <h1>Color &amp; Callout Boxes for Markdown, Made Effortless</h1>
-    <p>Type <code>+-- info</code>, <code>ok</code>, <code>note</code>, <code>warn</code>, or <code>!</code>. Readable as plain text, styled everywhere, and 100% compatible with CommonMark &amp; GitHub Alerts.</p>
-
-    <div class="hero-badges">
-      <a href="https://www.npmjs.com/package/hue-md"><img src="https://img.shields.io/npm/v/hue-md?color=cb3837&amp;label=npm" alt="npm"></a>
-      <a href="https://marketplace.visualstudio.com/items?itemName=spingras.hue-md"><img src="https://img.shields.io/badge/VS%20Code%20Marketplace-spingras.hue--md-007acc" alt="VS Code Marketplace"></a>
-      <a href="https://github.com/spingras/hue-md"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
-      <a href="https://github.com/spingras/hue-md#built-for-real-world-reliability"><img src="https://img.shields.io/badge/CommonMark-652%2F652%20Pass-brightgreen" alt="CommonMark 652/652 Pass"></a>
-      <a href="#foss"><img src="https://img.shields.io/badge/FOSS-100%25%20Free%20%26%20Open-orange" alt="100% FOSS"></a>
-      <a href="https://ko-fi.com/hue_md"><img src="https://img.shields.io/badge/Ko--fi-hue__md-ff5f5f?logo=ko-fi&amp;logoColor=white" alt="Ko-fi"></a>
-      <a href="https://patreon.com/hue_md"><img src="https://img.shields.io/badge/Patreon-hue__md-f96854?logo=patreon&amp;logoColor=white" alt="Patreon"></a>
+<main>
+  <div class="wrap hero">
+    <p class="eyebrow">OPEN SOURCE · MIT LICENSE · COMMONMARK COMPATIBLE</p>
+    <h1>Color and boxes for Markdown</h1>
+    <p class="lead">Hue Markdown adds colored text and drawn boxes to Markdown. The source stays easy to read as plain text, for people and for AI. Edit the example below to see how it works.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#install">Install</a>
+      <a class="btn" href="${REPO}">Source on GitHub</a>
     </div>
+  </div>
 
-    <div class="downloads">
-      <a class="dl-card" href="https://marketplace.visualstudio.com/items?itemName=spingras.hue-md">
-        <div>
-          <div class="dl-title"><span>VS Code Marketplace</span><span class="dl-file">spingras.hue-md</span></div>
-          <div class="dl-desc">1-click install from VS Code Marketplace — snippets (<code>info</code> + Tab), live preview (<code>Ctrl+Shift+V</code>) &amp; coloring.</div>
-        </div>
-      </a>
-      <a class="dl-card" href="https://www.npmjs.com/package/hue-md">
-        <div>
-          <div class="dl-title"><span>npm CLI &amp; Package</span><span class="dl-file">npm i -g hue-md</span></div>
-          <div class="dl-desc">Terminal 24-bit ANSI viewer (<code>hue-md view</code>), GitHub Alert downgrade (<code>hue-md downgrade</code>) &amp; JS API.</div>
-        </div>
-      </a>
-      <a class="dl-card" href="https://github.com/spingras/hue-md/releases/latest/download/hue-md-npp-x64.zip">
-        <div>
-          <div class="dl-title"><span>Notepad++ (x64)</span><span class="dl-file">hue-md-npp-x64.zip</span></div>
-          <div class="dl-desc">Native <code>hue-md.dll</code> plugin with docked live preview &amp; 1-click box menu.</div>
-        </div>
-      </a>
-      <a class="dl-card" href="https://github.com/spingras/hue-md/releases/latest/download/hue-md-obsidian.zip">
-        <div>
-          <div class="dl-title"><span>Obsidian Plugin</span><span class="dl-file">hue-md-obsidian.zip</span></div>
-          <div class="dl-desc">Native Obsidian plugin for rendering Hue spans &amp; boxes inside your vault.</div>
-        </div>
-      </a>
-      <a class="dl-card" href="https://github.com/spingras/hue-md/releases/latest/download/hue-md-nvim.zip">
-        <div>
-          <div class="dl-title"><span>Neovim Plugin</span><span class="dl-file">hue-md-nvim.zip</span></div>
-          <div class="dl-desc">Native Lua plugin (<code>hue-md.nvim</code>) with extmark coloring &amp; <code>:HueBox</code>.</div>
-        </div>
-      </a>
-      <a class="dl-card" href="https://github.com/spingras/hue-md/releases/latest/download/hue-md.user.js">
-        <div>
-          <div class="dl-title"><span>GitHub UserScript</span><span class="dl-file">hue-md.user.js</span></div>
-          <div class="dl-desc">1-click install in Tampermonkey / Violentmonkey for live rendering on GitHub.com.</div>
-        </div>
-      </a>
-      <a class="dl-card" href="https://github.com/spingras/hue-md/releases/latest/download/hue-md-snippets.zip">
-        <div>
-          <div class="dl-title"><span>Sublime &amp; Emacs</span><span class="dl-file">hue-md-snippets.zip</span></div>
-          <div class="dl-desc">Sublime Text snippets, templates &amp; Emacs <code>hue-md-mode.el</code>.</div>
-        </div>
-      </a>
+  <div class="wrap" id="playground">
+    <div class="section-head">
+      <h2>Playground</h2>
     </div>
-  </section>
-
-  <section class="playground">
-    <div class="pane">
-      <div class="pane-bar">
-        <span>demo.hue.md (Editable)</span>
-        <div class="quick-btns">
-          <button class="chip" data-box="info" type="button">+ info</button>
-          <button class="chip" data-box="ok" type="button">+ ok</button>
-          <button class="chip" data-box="note" type="button">+ note</button>
-          <button class="chip" data-box="warn" type="button">+ warn</button>
-          <button class="chip" data-box="!" type="button">+ !</button>
+    <div class="playground">
+      <div class="pane">
+        <div class="bar">
+          <span class="file">demo.hue.md</span>
+          <span class="chip-label">Add box</span>${boxButtons}
+          <button class="chip" type="button" id="reset" title="Restore the example">Reset</button>
+        </div>
+        <div class="editor-wrap">
+          <div class="gutter" id="gutter" aria-hidden="true"></div>
+          <textarea id="editor" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Hue Markdown source">${esc(src)}</textarea>
         </div>
       </div>
-      <textarea id="editor" spellcheck="false">${src.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</textarea>
-    </div>
-
-    <div class="pane">
-      <div class="pane-bar">
-        <span>Live Output</span>
-        <div class="quick-btns">
-          <button class="chip" id="tabPreview" type="button">Rendered HTML</button>
-          <button class="chip" id="tabDowngrade" type="button">GitHub Downgrade (.md)</button>
+      <div class="pane">
+        <div class="bar">
+          <div class="tabs" role="tablist" aria-label="Output">
+            <button class="tab" role="tab" type="button" data-view="preview" aria-selected="true">Preview</button>
+            <button class="tab" role="tab" type="button" data-view="terminal" aria-selected="false" tabindex="-1">Terminal</button>
+            <button class="tab" role="tab" type="button" data-view="github" aria-selected="false" tabindex="-1">GitHub</button>
+          </div>
+          <button class="copy" type="button" id="copy-github" hidden>Copy</button>
         </div>
+        <div class="view" id="view-preview" role="tabpanel" aria-label="Preview">${md.render(src)}</div>
+        <div class="view" id="view-terminal" role="tabpanel" aria-label="Terminal" hidden>
+          <div class="term-bar"><i></i><i></i><i></i><span><b class="prompt">$</b> hue-md view demo.hue.md</span></div>
+          <pre id="terminal-out"></pre>
+        </div>
+        <div class="view" id="view-github" role="tabpanel" aria-label="GitHub Markdown" hidden><pre id="github-out"></pre></div>
+        <p class="status" id="status" role="status"></p>
       </div>
-      <div class="preview-body" id="previewPane">${initialHtml}</div>
-      <div class="preview-body" id="downgradePane" style="display:none"><pre class="downgrade-out" id="downgradeCode">${initialDowngrade.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</pre></div>
     </div>
+  </div>
+
+  <section class="wrap" id="install">
+    <div class="section-head">
+      <h2>Install</h2>
+      <p>Plugins marked “Early version” have automated tests only. Feedback is welcome.</p>
+    </div>${installHtml}
   </section>
 
-  <section class="info-grid" id="foss">
-    <div class="info-card">
-      <h2>Built for Real-World Reliability</h2>
-      <p>Turn Hue MD on across all your Markdown files without ever worrying about broken prose or code:</p>
-      <ul>
-        <li><strong>Zero False Positives:</strong> JSON (<code>{"key": "value"}</code>), object literals (<code>{a: 1}</code>), math formulas, and code blocks are never touched. Verified across 250+ npm READMEs &amp; AI transcripts with 0 unintended changes.</li>
-        <li><strong>100% CommonMark Superset:</strong> All 652/652 CommonMark 0.31.2 spec examples render identically byte-for-byte.</li>
-        <li><strong>WCAG AA Contrast:</strong> All 7 palette colors meet strict 4.5:1+ contrast in both Light and Dark themes.</li>
-      </ul>
-    </div>
-
-    <div class="info-card">
-      <h2>Open Source Commitment (FOSS) &amp; Supporting Hue MD</h2>
-      <p>Hue MD is and will always remain <strong>100% Free and Open Source Software (MIT License)</strong> — zero telemetry, zero vendor lock-in, and pure plain text that you own forever.</p>
-      <p>This project is entirely self-funded and community-driven. If Hue MD saves you time or improves your documentation workflow, consider supporting independent development:</p>
-      <div class="support-btns">
-        <a class="btn btn-sponsor" href="https://ko-fi.com/hue_md" target="_blank" rel="noopener">☕ Ko-fi (ko-fi.com/hue_md)</a>
-        <a class="btn btn-sponsor" href="https://patreon.com/hue_md" target="_blank" rel="noopener">💖 Patreon (patreon.com/hue_md)</a>
-        <a class="btn" href="https://github.com/spingras/hue-md" target="_blank" rel="noopener">⭐ Star on GitHub</a>
+  <section class="wrap">
+    <div class="support">
+      <div>
+        <h2>Support Hue MD</h2>
+        <p>Hue MD is free and open source. If it is useful to you, you can support the work.</p>
+      </div>
+      <div class="support-actions">
+        <a class="btn btn-kofi" href="${KOFI}" target="_blank" rel="noopener">Buy me a coffee on Ko-fi</a>
+        <a class="btn btn-patreon" href="${PATREON}" target="_blank" rel="noopener">Support on Patreon</a>
       </div>
     </div>
   </section>
 </main>
 
 <footer>
-  <div class="container">
-    Hue MD (<code>hue-md</code>) · 100% FOSS (MIT License) ·
-    <a href="https://github.com/spingras/hue-md" style="color:inherit">GitHub</a> ·
-    <a href="https://ko-fi.com/hue_md" style="color:inherit">Ko-fi</a> ·
-    <a href="https://patreon.com/hue_md" style="color:inherit">Patreon</a>
+  <div class="wrap">
+    <span>Hue MD is built and maintained by <a href="https://spingras.io">SpinGras</a>. MIT license.</span>
+    <span><a href="${REPO}">GitHub</a> · <a href="https://www.npmjs.com/package/hue-md">npm</a> · <a href="${KOFI}">Ko-fi</a> · <a href="${PATREON}">Patreon</a></span>
   </div>
 </footer>
-
-<script>
-(function() {
-  const COLORS = { red:'red', orange:'orange', yellow:'yellow', green:'green', blue:'blue', purple:'purple', gray:'gray', danger:'red', '!':'red', warn:'orange', warning:'orange', ok:'green', success:'green', info:'blue', tip:'blue', note:'purple', important:'purple', muted:'gray' };
-  const hasColor = (k) => Object.prototype.hasOwnProperty.call(COLORS, k);
-  const ALERTS = { red:'CAUTION', orange:'WARNING', yellow:'WARNING', green:'TIP', blue:'NOTE', purple:'IMPORTANT', gray:'NOTE' };
-
-  function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-  function renderInline(s) {
-    let out = esc(s);
-    out = out.replace(/\`([^\`]+)\`/g, '<code>$1</code>');
-    out = out.replace(/\\*\\*([^*]+)\\*\\*/g, '<strong>$1</strong>');
-    out = out.replace(/\\*([^*]+)\\*/g, '<em>$1</em>');
-    out = out.replace(/\\{([!a-zA-Z0-9_\\-#\\s]+):\\s*([^{}]+)\\}/g, (m, spec, body) => {
-      const words = spec.trim().split(/\\s+/);
-      const cls = ['hue'];
-      const styles = [];
-      for (const w of words) {
-        if (w.startsWith('bg-')) {
-          const v = w.slice(3);
-          if (hasColor(v)) cls.push('hue-bg-' + COLORS[v]);
-          else if (/^#[0-9a-fA-F]{3,6}$/.test(v)) styles.push('background-color:' + v);
-          else return m;
-        } else if (hasColor(w)) {
-          cls.push('hue-' + COLORS[w]);
-        } else if (/^#[0-9a-fA-F]{3,6}$/.test(w)) {
-          styles.push('color:' + w);
-        } else return m;
-      }
-      const st = styles.length ? ' style="' + styles.join(';') + ';padding:0 .2em;border-radius:3px"' : '';
-      return '<span class="' + cls.join(' ') + '"' + st + '>' + body + '</span>';
-    });
-    return out;
-  }
-
-  function renderHue(mdText) {
-    const lines = mdText.replace(/\\r\\n/g, '\\n').split('\\n');
-    let html = '';
-    let i = 0;
-    while (i < lines.length) {
-      const line = lines[i];
-      if (!line.trim()) { i++; continue; }
-      if (line.startsWith('# ')) { html += '<h1>' + renderInline(line.slice(2)) + '</h1>'; i++; continue; }
-      if (line.startsWith('## ')) { html += '<h2>' + renderInline(line.slice(3)) + '</h2>'; i++; continue; }
-      const topM = line.match(/^([┌╭+])([─\\-]+)(.*?)\\s*$/);
-      if (topM) {
-        let j = i + 1;
-        const inner = [];
-        let closed = false;
-        while (j < lines.length) {
-          if (/^(?:[└╰][─\\-]+[┘╯]?|\\+[─\\-]+\\+?)\\s*$/.test(lines[j])) { closed = true; break; }
-          if (!/^[│|]/.test(lines[j])) break;
-          inner.push(lines[j].replace(/^[│|] ?/, '').replace(/ ?[│|]\\s*$/, ''));
-          j++;
-        }
-        if (closed) {
-          let rest = topM[3].trim();
-          if (rest && '┐╮+'.includes(rest[rest.length - 1])) rest = rest.slice(0, -1).trim();
-          rest = rest.replace(/[─\\-]+$/, '').trim();
-          const parts = rest ? rest.split(/\\s+/) : [];
-          let color = null;
-          let idx = 0;
-          if (parts[0] && hasColor(parts[0])) { color = COLORS[parts[0]]; idx = 1; }
-          const title = parts.slice(idx).join(' ');
-          const boxCls = 'hue-box' + (color ? ' hue-box-' + color : '');
-          html += '<div class="' + boxCls + '" role="note">';
-          if (title) html += '<div class="hue-box-title">' + renderInline(title) + '</div>';
-          const pLines = [];
-          const ulLines = [];
-          for (const il of inner) {
-            if (il.startsWith('- ')) ulLines.push('<li>' + renderInline(il.slice(2)) + '</li>');
-            else if (il.trim()) pLines.push(renderInline(il));
-          }
-          if (pLines.length) html += '<p>' + pLines.join('\\n') + '</p>';
-          if (ulLines.length) html += '<ul>' + ulLines.join('') + '</ul>';
-          html += '</div>';
-          i = j + 1;
-          continue;
-        }
-      }
-      const para = [];
-      while (i < lines.length && lines[i].trim() && !lines[i].startsWith('#') && !/^([┌╭+])([─\\-]+)/.test(lines[i])) {
-        para.push(renderInline(lines[i]));
-        i++;
-      }
-      if (para.length) html += '<p>' + para.join('\\n') + '</p>';
-    }
-    return html;
-  }
-
-  function renderDowngrade(mdText) {
-    const lines = mdText.replace(/\\r\\n/g, '\\n').split('\\n');
-    const out = [];
-    let i = 0;
-    const stripSpans = (s) => s.replace(/\\{([!a-zA-Z0-9_\\-#\\s]+):\\s*([^{}]+)\\}/g, (m, spec, body) => {
-      const w = spec.trim().split(/\\s+/)[0];
-      const c = hasColor(w) ? COLORS[w] : null;
-      if (!c && !w.startsWith('#') && !w.startsWith('bg-')) return m;
-      return (c === 'red' || c === 'orange') ? '**' + body + '**' : body;
-    });
-    while (i < lines.length) {
-      const line = lines[i];
-      const topM = line.match(/^([┌╭+])([─\\-]+)(.*?)\\s*$/);
-      if (topM) {
-        let j = i + 1;
-        const inner = [];
-        let closed = false;
-        while (j < lines.length) {
-          if (/^(?:[└╰][─\\-]+[┘╯]?|\\+[─\\-]+\\+?)\\s*$/.test(lines[j])) { closed = true; break; }
-          if (!/^[│|]/.test(lines[j])) break;
-          inner.push(lines[j].replace(/^[│|] ?/, '').replace(/ ?[│|]\\s*$/, ''));
-          j++;
-        }
-        if (closed) {
-          let rest = topM[3].trim();
-          if (rest && '┐╮+'.includes(rest[rest.length - 1])) rest = rest.slice(0, -1).trim();
-          rest = rest.replace(/[─\\-]+$/, '').trim();
-          const parts = rest ? rest.split(/\\s+/) : [];
-          let color = 'gray';
-          let idx = 0;
-          if (parts[0] && hasColor(parts[0])) { color = COLORS[parts[0]]; idx = 1; }
-          const title = parts.slice(idx).join(' ');
-          out.push('> [!' + (ALERTS[color] || 'NOTE') + ']');
-          if (title) { out.push('> **' + stripSpans(title) + '**'); out.push('>'); }
-          for (const il of inner) out.push(il.trim() ? '> ' + stripSpans(il) : '>');
-          i = j + 1;
-          continue;
-        }
-      }
-      out.push(stripSpans(line));
-      i++;
-    }
-    return out.join('\\n');
-  }
-
-  const editor = document.getElementById('editor');
-  const previewPane = document.getElementById('previewPane');
-  const downgradePane = document.getElementById('downgradePane');
-  const downgradeCode = document.getElementById('downgradeCode');
-
-  editor.addEventListener('input', () => {
-    previewPane.innerHTML = renderHue(editor.value);
-    downgradeCode.textContent = renderDowngrade(editor.value);
-  });
-
-  document.querySelectorAll('[data-box]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const kind = btn.getAttribute('data-box');
-      const snippet = '\\n+-- ' + kind + ' Title\\n| Point one\\n| Point two\\n+--\\n';
-      const start = editor.selectionStart || editor.value.length;
-      editor.value = editor.value.slice(0, start) + snippet + editor.value.slice(start);
-      editor.dispatchEvent(new Event('input'));
-      editor.focus();
-    });
-  });
-
-  document.getElementById('tabPreview').addEventListener('click', () => {
-    previewPane.style.display = 'block';
-    downgradePane.style.display = 'none';
-  });
-  document.getElementById('tabDowngrade').addEventListener('click', () => {
-    previewPane.style.display = 'none';
-    downgradePane.style.display = 'block';
-  });
-  document.getElementById('themeBtn').addEventListener('click', () => {
-    const root = document.documentElement;
-    const cur = root.getAttribute('data-theme');
-    root.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
-  });
-})();
-</script>
+<script src="playground.js" defer></script>
 </body>
 </html>
 `
 
-mkdirSync(new URL('../site/', import.meta.url), { recursive: true })
-writeFileSync(new URL('../demo/index.html', import.meta.url), pageHtml)
-writeFileSync(new URL('../site/index.html', import.meta.url), pageHtml)
-copyFileSync(new URL('../demo/demo.hue.md', import.meta.url), new URL('../site/demo.hue.md', import.meta.url))
-console.log('wrote demo/index.html and site/index.html')
+await build({
+  entryPoints: [fileURLToPath(url('./playground-entry.js'))],
+  bundle: true,
+  format: 'iife',
+  minify: true,
+  target: ['es2020'],
+  outfile: fileURLToPath(url('../site/playground.js')),
+  logLevel: 'warning'
+})
+
+mkdirSync(url('../site/'), { recursive: true })
+writeFileSync(url('../site/index.html'), pageHtml)
+writeFileSync(url('../demo/index.html'), pageHtml)
+copyFileSync(url('../site/playground.js'), url('../demo/playground.js'))
+copyFileSync(url('../demo/demo.hue.md'), url('../site/demo.hue.md'))
+console.log('wrote site/ and demo/ (index.html, playground.js)')
