@@ -54,6 +54,10 @@ const BOXES = [
   { kind: '!', color: 'red', title: 'Stop' }
 ]
 
+const ICON = (body) => `<svg viewBox="0 0 24 24" aria-hidden="true">${body}</svg>`
+const copyIcon = `<span class="i-copy">${ICON('<rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2"/><path d="M15.5 8.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7.5a2 2 0 0 0 2 2h2.5"/>')}</span><span class="i-check">${ICON('<path d="M5 12.5l4.5 4.5L19 7.5"/>')}</span>`
+const resetIcon = ICON('<path d="M4 4v5h5"/><path d="M4.6 15a8 8 0 1 0 1.9-8.3L4 9"/>')
+
 const installHtml = INSTALL.map((g) => `
       <div class="install-group">
         <h3>${g.group}</h3>
@@ -62,7 +66,7 @@ const installHtml = INSTALL.map((g) => `
             <div class="install-main">
               <p class="install-name">${esc(it.name)}${it.note ? ` <span class="install-note">${esc(it.note)}</span>` : ''}${it.early ? ' <span class="tag">Early version</span>' : ''}</p>
               <p class="install-text">${esc(it.text)}</p>${it.code ? `
-              <div class="cmd"><code>${esc(it.code)}</code><button class="copy" type="button" data-copy="${esc(it.code)}">Copy</button></div>` : ''}
+              <div class="cmd"><code>${esc(it.code)}</code><button class="copy" type="button" data-copy="${esc(it.code)}" title="Copy" aria-label="Copy the command">${copyIcon}</button></div>` : ''}
             </div>
             <div class="install-actions">
               <a class="btn" href="${it.href}">${esc(it.action)}</a>${it.extra ? `
@@ -72,9 +76,9 @@ const installHtml = INSTALL.map((g) => `
         </ul>
       </div>`).join('')
 
-const boxButtons = BOXES.map((b) => `<button class="chip" type="button" data-box="${esc(b.kind)}" data-title="${b.title}"><span class="dot" style="background:var(--hue-${b.color})"></span>${esc(b.kind)}</button>`).join('')
+const boxButtons = BOXES.map((b) => `<button class="chip" type="button" data-box="${esc(b.kind)}" data-title="${b.title}" aria-label="Add ${esc(b.kind)} box" style="color:var(--hue-${b.color})"><span aria-hidden="true">+</span>${esc(b.kind)}</button>`).join('')
 
-const sunMoon = `<svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>`
+const sunMoon =`<svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>`
 
 const pageHtml = `<!doctype html>
 <html lang="en">
@@ -164,18 +168,23 @@ code { font: .88em var(--mono); background: var(--bg-inset); padding: .12em .38e
 .playground { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--bg); box-shadow: var(--shadow); height: clamp(520px, 72vh, 760px); }
 .pane { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .pane + .pane { border-left: 1px solid var(--line); }
-.bar { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 8px 12px; background: var(--bg-subtle); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-.file { font: 600 .82rem var(--mono); color: var(--text); margin-right: auto; display: flex; align-items: center; gap: 8px; }
-.file::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--hue-green); }
-.chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 9px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font: 500 .78rem var(--mono); cursor: pointer; }
+.bar { flex: none; display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 12px; background: var(--bg-subtle); border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.bar::-webkit-scrollbar { display: none; }
+.bar > * { flex: none; }
+.file { font: 400 .82rem var(--mono); color: var(--text); margin-right: auto; }
+.chip { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font: 400 .78rem var(--mono); cursor: pointer; }
 .chip:hover { border-color: var(--muted); }
-.dot { width: 8px; height: 8px; border-radius: 50%; }
 .chip-label { font-size: .78rem; color: var(--muted); margin-right: 2px; }
+@media (max-width: 1180px) {
+  .chip-label { display: none; }
+  .pane:first-child .bar { gap: 5px; }
+  .chip { padding: 0 7px; gap: 5px; }
+}
 .editor-wrap { flex: 1; display: flex; min-height: 0; background: var(--bg); }
 .gutter { flex: none; width: 46px; padding: 16px 10px 16px 0; overflow: hidden; text-align: right; font: 13px/1.6 var(--mono); color: var(--muted); opacity: .6; user-select: none; background: var(--bg-subtle); border-right: 1px solid var(--line-soft); }
 .gutter span { display: block; }
 #editor { flex: 1; min-width: 0; border: 0; margin: 0; padding: 16px 18px; resize: none; outline: none; background: transparent; color: var(--text); font: 13px/1.6 var(--mono); white-space: pre; overflow: auto; tab-size: 2; }
-.tabs { display: flex; gap: 2px; padding: 3px; border-radius: 8px; background: var(--bg-inset); margin-right: auto; }
+.tabs { display: flex; gap: 2px; padding: 2px; border-radius: 8px; background: var(--bg-inset); margin-right: auto; }
 .tab { height: 28px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font: 600 .82rem var(--sans); cursor: pointer; }
 .tab[aria-selected="true"] { background: var(--bg); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
 .view { flex: 1; overflow: auto; min-height: 0; }
@@ -214,7 +223,16 @@ main > section.wrap { margin-top: 72px; }
 .install-actions { display: flex; gap: 8px; }
 .cmd { display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; padding: 4px 4px 4px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-subtle); }
 .cmd code { background: none; padding: 0; font-size: .86rem; }
-.copy { height: 26px; padding: 0 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--muted); font: 600 .75rem var(--sans); cursor: pointer; }
+.copy { width: 28px; height: 28px; padding: 0; display: inline-grid; place-items: center; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--muted); cursor: pointer; }
+.copy:hover, .chip-icon:hover { color: var(--text); border-color: var(--muted); }
+.copy svg, .chip-icon svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.copy .i-check { display: none; color: var(--hue-green); }
+.copy[hidden] { display: none; }
+.copy.done .i-copy { display: none; }
+.copy.done .i-check { display: inline; }
+.copy span { display: inline-flex; }
+.chip-icon { width: 28px; padding: 0; justify-content: center; color: var(--muted); }
+.cmd .copy { width: 26px; height: 26px; }
 @media (max-width: 640px) {
   .install-row { grid-template-columns: minmax(0, 1fr); gap: 12px; }
 }
@@ -269,7 +287,7 @@ footer a:hover { color: var(--text); }
         <div class="bar">
           <span class="file">demo.hue.md</span>
           <span class="chip-label">Add box</span>${boxButtons}
-          <button class="chip" type="button" id="reset" title="Restore the example">Reset</button>
+          <button class="chip chip-icon" type="button" id="reset" title="Reset the example" aria-label="Reset the example">${resetIcon}</button>
         </div>
         <div class="editor-wrap">
           <div class="gutter" id="gutter" aria-hidden="true"></div>
@@ -283,7 +301,7 @@ footer a:hover { color: var(--text); }
             <button class="tab" role="tab" type="button" data-view="terminal" aria-selected="false" tabindex="-1">Terminal</button>
             <button class="tab" role="tab" type="button" data-view="github" aria-selected="false" tabindex="-1">GitHub</button>
           </div>
-          <button class="copy" type="button" id="copy-github" hidden>Copy</button>
+          <button class="copy" type="button" id="copy-github" title="Copy" aria-label="Copy the GitHub Markdown" hidden>${copyIcon}</button>
         </div>
         <div class="view" id="view-preview" role="tabpanel" aria-label="Preview">${md.render(src)}</div>
         <div class="view" id="view-terminal" role="tabpanel" aria-label="Terminal" hidden>

@@ -162,26 +162,21 @@ tabs.forEach((t, i) => {
   })
 })
 
-copyBtn.addEventListener('click', async () => {
+// Icon copy buttons: the clipboard icon turns into a check mark for a moment.
+async function copyText (btn, text) {
   try {
-    await navigator.clipboard.writeText(githubOut.textContent)
-    copyBtn.textContent = 'Copied'
+    await navigator.clipboard.writeText(text)
+    btn.classList.add('done')
+    btn.title = 'Copied'
   } catch {
-    copyBtn.textContent = 'Select the text to copy'
+    btn.title = 'Copy did not work. Select the text and press Ctrl+C.'
   }
-  setTimeout(() => { copyBtn.textContent = 'Copy' }, 1600)
-})
+  setTimeout(() => { btn.classList.remove('done'); btn.title = 'Copy' }, 1600)
+}
 
+copyBtn.addEventListener('click', () => copyText(copyBtn, githubOut.textContent))
 document.querySelectorAll('[data-copy]').forEach((btn) => {
-  btn.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(btn.dataset.copy)
-      btn.textContent = 'Copied'
-    } catch {
-      btn.textContent = 'Select to copy'
-    }
-    setTimeout(() => { btn.textContent = 'Copy' }, 1600)
-  })
+  btn.addEventListener('click', () => copyText(btn, btn.dataset.copy))
 })
 
 let resizeTimer
