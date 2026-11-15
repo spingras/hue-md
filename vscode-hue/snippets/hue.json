@@ -1,0 +1,72 @@
+{
+  "Hue Info Box": {
+    "prefix": ["info", "tip", "hue-info"],
+    "body": [
+      "+-- info ${1:Title}",
+      "| ${2:Content}",
+      "+--"
+    ],
+    "description": "Insert a Hue Info/Tip box (blue)"
+  },
+  "Hue Warning Box": {
+    "prefix": ["warn", "warning", "hue-warn"],
+    "body": [
+      "+-- warn ${1:Title}",
+      "| ${2:Content}",
+      "+--"
+    ],
+    "description": "Insert a Hue Warning box (orange)"
+  },
+  "Hue OK / Success Box": {
+    "prefix": ["ok", "success", "hue-ok"],
+    "body": [
+      "+-- ok ${1:Title}",
+      "| ${2:Content}",
+      "+--"
+    ],
+    "description": "Insert a Hue OK/Success box (green)"
+  },
+  "Hue Note Box": {
+    "prefix": ["note", "hue-note"],
+    "body": [
+      "+-- note ${1:Title}",
+      "| ${2:Content}",
+      "+--"
+    ],
+    "description": "Insert a Hue Note box (purple)"
+  },
+  "Hue Danger Box": {
+    "prefix": ["danger", "caution", "hue-danger"],
+    "body": [
+      "+-- danger ${1:Title}",
+      "| ${2:Content}",
+      "+--"
+    ],
+    "description": "Insert a Hue Danger/Caution box (red)"
+  },
+  "Hue Generic Box": {
+    "prefix": ["box", "hue-box"],
+    "body": [
+      "+-- ${1|info,ok,warn,note,danger|} ${2:Title}",
+      "| ${3:Content}",
+      "+--"
+    ],
+    "description": "Insert a customizable Hue box"
+  },
+  "Hue Rounded Box": {
+    "prefix": ["rbox", "hue-round"],
+    "body": [
+      "╭── ${1|info,ok,warn,note,danger|} ${2:Title}",
+      "│ ${3:Content}",
+      "╰──"
+    ],
+    "description": "Insert a Hue rounded box (Unicode)"
+  },
+  "Hue Color Span": {
+    "prefix": ["span", "hue-span", "color"],
+    "body": [
+      "{${1|info,ok,warn,note,danger,red,orange,yellow,green,blue,purple,gray|}: ${2:text}}"
+    ],
+    "description": "Insert a Hue colored text span"
+  }
+}

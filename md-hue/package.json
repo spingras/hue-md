@@ -1,0 +1,28 @@
+{
+  "name": "md-hue",
+  "version": "0.1.0",
+  "description": "Hue Markdown tools: render .hue.md in the terminal, downgrade to GitHub Markdown, convert to HTML",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./ansi": "./src/ansi.js",
+    "./downgrade": "./src/downgrade.js"
+  },
+  "bin": {
+    "hue-md": "./bin/hue-md.js",
+    "md-hue": "./bin/md-hue.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spingras/hue-md.git"
+  },
+  "homepage": "https://spingras.github.io/hue-md",
+  "files": ["src", "bin"],
+  "scripts": { "test": "node --test \"test/**/*.test.js\"" },
+  "keywords": ["markdown", "hue", "cli", "terminal", "ansi", "github"],
+  "license": "MIT",
+  "dependencies": {
+    "markdown-it": "^14.1.0",
+    "markdown-it-hue": "file:.."
+  }
+}

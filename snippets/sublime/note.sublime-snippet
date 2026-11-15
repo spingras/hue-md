@@ -1,0 +1,10 @@
+<snippet>
+	<content><![CDATA[
++-- note ${1:Title}
+| ${0:Content}
++--
+]]></content>
+	<tabTrigger>note</tabTrigger>
+	<scope>text.html.markdown</scope>
+	<description>Hue: Note Box</description>
+</snippet>

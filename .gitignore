@@ -1,0 +1,13 @@
+node_modules/
+/dist/
+/site/
+/notepadpp-hue/dist/
+demo/index.html
+corpus/
+*.obj
+*.lib
+*.exp
+notepadpp-hue/test/*.exe
+vscode-hue/*.vsix
+CODE_REVIEW.md
+COMMUNITY_PITCH.md

@@ -1,0 +1,128 @@
+{
+  "name": "hue-md",
+  "displayName": "Hue MD",
+  "description": "Rich color spans and styled callout boxes for Markdown (.hue.md) with live side-by-side preview and editor highlighting",
+  "version": "0.1.0",
+  "publisher": "spingras",
+  "license": "MIT",
+  "homepage": "https://spingras.github.io/hue-md",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/spingras/hue-md.git"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Formatters",
+    "Programming Languages",
+    "Other"
+  ],
+  "type": "module",
+  "keywords": [
+    "markdown",
+    "hue",
+    "callout",
+    "preview",
+    "colors",
+    "boxes"
+  ],
+  "main": "./dist/extension.cjs",
+  "activationEvents": [
+    "onLanguage:markdown",
+    "onLanguage:hue-markdown"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "hue-markdown",
+        "aliases": [
+          "Hue Markdown",
+          "Hue",
+          "hue"
+        ],
+        "extensions": [
+          ".hue.md"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./media/icon.png",
+          "dark": "./media/icon.png"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "hue-markdown",
+        "scopeName": "source.hue-markdown",
+        "path": "./syntaxes/hue-markdown.tmLanguage.json",
+        "embeddedLanguages": {
+          "meta.embedded.markdown": "markdown"
+        }
+      },
+      {
+        "scopeName": "hue.markdown.injection",
+        "path": "./syntaxes/hue-injection.tmLanguage.json",
+        "injectTo": [
+          "text.html.markdown"
+        ]
+      }
+    ],
+    "markdown.markdownItPlugins": true,
+    "markdown.previewStyles": [
+      "./media/hue.css"
+    ],
+    "snippets": [
+      {
+        "language": "hue-markdown",
+        "path": "./snippets/hue.json"
+      },
+      {
+        "language": "markdown",
+        "path": "./snippets/hue.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "hue.openPreviewSideBySide",
+        "title": "Hue: Open Side-by-Side Preview",
+        "icon": "$(split-horizontal)"
+      },
+      {
+        "command": "hue.downgradeToGfm",
+        "title": "Hue: Convert to GitHub Alert Markdown (.md)"
+      },
+      {
+        "command": "hue.insertBox",
+        "title": "Hue: Insert Box..."
+      },
+      {
+        "command": "hue.wrapSelectionInBox",
+        "title": "Hue: Wrap Selection in Box..."
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "hue.openPreviewSideBySide",
+          "when": "resourceExtname == .hue.md || resourceExtname == .md",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "hue.openPreviewSideBySide",
+          "when": "editorTextFocus"
+        },
+        {
+          "command": "hue.downgradeToGfm",
+          "when": "resourceExtname == .hue.md"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node build.js",
+    "test": "node --test test/extension.test.js"
+  }
+}

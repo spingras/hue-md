@@ -1,0 +1,150 @@
+import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from 'node:fs'
+import { relative, join } from 'node:path'
+import { execFileSync } from 'node:child_process'
+import { downgrade } from '../../../md-hue/src/downgrade.js'
+
+function getInput (name, fallback) {
+  const upper = name.toUpperCase()
+  const hyphenKey = `INPUT_${upper}`
+  const underscoreKey = `INPUT_${upper.replace(/-/g, '_')}`
+  const val = process.env[hyphenKey] ?? process.env[underscoreKey]
+  return (val !== undefined && val !== '') ? val : fallback
+}
+
+function globToRegExp (pattern) {
+  const norm = pattern.replace(/\\/g, '/').replace(/^\.\//, '')
+  // Plain suffix like ".hue.md" matches any path ending with that suffix
+  if (!norm.includes('/') && !norm.includes('*') && !norm.includes('?')) {
+    const escaped = norm.replace(/[.+^${}()|[\]\\]/g, '\\$&')
+    return new RegExp(`${escaped}$`)
+  }
+  let re = '^'
+  for (let i = 0; i < norm.length; i++) {
+    const c = norm[i]
+    if (c === '*') {
+      if (norm[i + 1] === '*') {
+        if (norm[i + 2] === '/') {
+          re += '(?:.*/)?'
+          i += 2
+        } else {
+          re += '.*'
+          i += 1
+        }
+      } else {
+        re += '[^/]*'
+      }
+    } else if (c === '?') {
+      re += '[^/]'
+    } else if ('+^$()|[]{}\\.'.includes(c)) {
+      re += '\\' + c
+    } else {
+      re += c
+    }
+  }
+  re += '$'
+  return new RegExp(re)
+}
+
+function getFilesRecursively (rootDir, currentDir, matcher) {
+  let results = []
+  if (!existsSync(currentDir)) return results
+  const list = readdirSync(currentDir)
+  for (const file of list) {
+    if (file === 'node_modules' || file === '.git') continue
+    const fullPath = join(currentDir, file)
+    const stat = statSync(fullPath)
+    if (stat && stat.isDirectory()) {
+      results = results.concat(getFilesRecursively(rootDir, fullPath, matcher))
+    } else {
+      const relPosix = relative(rootDir, fullPath).replace(/\\/g, '/')
+      // Only process .hue.md source files so plain .md files are never overwritten
+      if (relPosix.endsWith('.hue.md') && matcher.test(relPosix)) {
+        results.push(fullPath)
+      }
+    }
+  }
+  return results
+}
+
+export function runAction (options = {}) {
+  const rootDir = options.cwd || process.cwd()
+  const pattern = options.pattern || getInput('pattern', '**/*.hue.md')
+  const mode = options.mode || getInput('mode', 'auto')
+  const checkOnlyInput = getInput('check-only', 'false')
+  const checkOnly = (options.checkOnly !== undefined) ? options.checkOnly : (checkOnlyInput === 'true')
+  const commitInput = getInput('commit', 'false')
+  const shouldCommit = (options.commit !== undefined) ? options.commit : (commitInput === 'true')
+  const commitMsg = options.commitMessage || getInput('commit-message', 'chore: sync Hue Markdown to GitHub-flavored Markdown [skip ci]')
+
+  const matcher = globToRegExp(pattern)
+  console.log(`[Hue Action] Scanning ${rootDir} for ${pattern}...`)
+  const files = getFilesRecursively(rootDir, rootDir, matcher)
+  console.log(`[Hue Action] Found ${files.length} file(s) matching ${pattern}`)
+
+  let outOfSyncCount = 0
+  const processed = []
+  const updatedTargets = []
+
+  for (const hueFile of files) {
+    if (!hueFile.endsWith('.hue.md')) continue
+    const targetFile = hueFile.slice(0, -'.hue.md'.length) + '.md'
+    if (targetFile === hueFile) continue
+
+    const sourceContent = readFileSync(hueFile, 'utf8')
+    const downgradedContent = downgrade(sourceContent, { spans: mode })
+
+    let isDifferent = true
+    if (existsSync(targetFile)) {
+      const existing = readFileSync(targetFile, 'utf8')
+      if (existing === downgradedContent) {
+        isDifferent = false
+      }
+    }
+
+    if (isDifferent) {
+      outOfSyncCount++
+      console.log(`[Hue Action] ⚡ Out of sync: ${relative(rootDir, hueFile)} -> ${relative(rootDir, targetFile)}`)
+      if (!checkOnly) {
+        writeFileSync(targetFile, downgradedContent, 'utf8')
+        updatedTargets.push(targetFile)
+        console.log(`[Hue Action]   ✓ Updated ${relative(rootDir, targetFile)}`)
+      }
+    } else {
+      console.log(`[Hue Action]   ✓ In sync: ${relative(rootDir, targetFile)}`)
+    }
+
+    processed.push({
+      hueFile,
+      targetFile,
+      isDifferent
+    })
+  }
+
+  if (checkOnly && outOfSyncCount > 0) {
+    console.error(`[Hue Action] Error: ${outOfSyncCount} file(s) are out of sync with their .hue.md source. Run 'hue-md downgrade' or pre-commit hook.`)
+    if (process.env.GITHUB_ACTIONS) process.exit(1)
+    return { success: false, outOfSyncCount, processed }
+  }
+
+  if (shouldCommit && updatedTargets.length > 0) {
+    console.log('[Hue Action] Committing changes...')
+    try {
+      execFileSync('git', ['config', 'user.name', 'github-actions[bot]'], { cwd: rootDir })
+      execFileSync('git', ['config', 'user.email', 'github-actions[bot]@users.noreply.github.com'], { cwd: rootDir })
+      execFileSync('git', ['add', '--', ...updatedTargets], { cwd: rootDir })
+      execFileSync('git', ['commit', '-m', commitMsg], { cwd: rootDir })
+      execFileSync('git', ['push'], { cwd: rootDir })
+      console.log('[Hue Action]   ✓ Pushed commit with updated .md files')
+    } catch (err) {
+      console.warn('[Hue Action] Note: Could not commit changes automatically:', err.message)
+    }
+  }
+
+  console.log(`[Hue Action] Done. ${files.length} processed, ${outOfSyncCount} updated.`)
+  return { success: true, outOfSyncCount, processed }
+}
+
+// Run if called directly
+if (process.argv[1] && (process.argv[1].endsWith('index.js') || process.argv[1].endsWith('index.cjs'))) {
+  runAction()
+}

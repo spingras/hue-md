@@ -1,0 +1,30 @@
+name: 'Hue Markdown Sync & Compile'
+description: 'Compiles Hue Markdown (.hue.md) files into GitHub Flavored Markdown with native alerts (> [!NOTE]) and badges'
+author: 'Hue Markdown Contributors'
+inputs:
+  pattern:
+    description: 'File glob pattern or directory to scan for .hue.md files'
+    required: false
+    default: '**/*.hue.md'
+  mode:
+    description: 'Downgrade mode for spans: auto, bold, latex, or plain'
+    required: false
+    default: 'auto'
+  check-only:
+    description: 'Exit with error code 1 if any generated .md file is out of sync with its .hue.md source'
+    required: false
+    default: 'false'
+  commit:
+    description: 'Automatically commit and push updated .md files'
+    required: false
+    default: 'false'
+  commit-message:
+    description: 'Commit message when auto-committing'
+    required: false
+    default: 'chore: sync Hue Markdown to GitHub-flavored Markdown [skip ci]'
+runs:
+  using: 'node20'
+  main: 'dist/index.cjs'
+branding:
+  icon: 'file-text'
+  color: 'purple'

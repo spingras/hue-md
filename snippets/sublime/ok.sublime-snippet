@@ -1,0 +1,10 @@
+<snippet>
+	<content><![CDATA[
++-- ok ${1:Title}
+| ${0:Content}
++--
+]]></content>
+	<tabTrigger>ok</tabTrigger>
+	<scope>text.html.markdown</scope>
+	<description>Hue: Success Box</description>
+</snippet>

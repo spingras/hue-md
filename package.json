@@ -1,0 +1,35 @@
+{
+  "name": "markdown-it-hue",
+  "version": "0.1.0",
+  "description": "Hue: readable-raw color, background and box syntax for Markdown (markdown-it plugin prototype)",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./core": "./src/core.js"
+  },
+  "files": [
+    "src",
+    "dist"
+  ],
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\" \"md-hue/test/**/*.test.js\" \"vscode-hue/test/**/*.test.js\" \"github-hue/test/**/*.test.js\"",
+    "build:css": "node scripts/build-css.js",
+    "demo": "node scripts/render-demo.js"
+  },
+  "keywords": [
+    "markdown",
+    "markdown-it",
+    "markdown-it-plugin",
+    "color",
+    "callout",
+    "box"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "markdown-it": ">=13"
+  },
+  "devDependencies": {
+    "markdown-it": "^14.1.0"
+  }
+}

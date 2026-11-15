@@ -1,0 +1,25 @@
+name: Hue Markdown Sync
+
+on:
+  push:
+    paths:
+      - '**/*.hue.md'
+  pull_request:
+    paths:
+      - '**/*.hue.md'
+
+jobs:
+  sync-markdown:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Hue Markdown Sync
+        uses: hue-md/action@v0.1
+        with:
+          pattern: '.hue.md'
+          mode: 'auto'
+          check-only: ${{ github.event_name == 'pull_request' }}
+          commit: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          commit-message: 'chore(docs): sync .hue.md to GitHub alerts [skip ci]'

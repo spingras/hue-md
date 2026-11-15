@@ -1,0 +1,96 @@
+/* Hue Markdown preview stylesheet for VS Code */
+:root {
+  --hue-text: #1f2328;
+  --hue-neutral-bg: #eef0f2;
+  --hue-red: #b42318;
+  --hue-red-bg: #fde8e7;
+  --hue-orange: #b54708;
+  --hue-orange-bg: #fdeedc;
+  --hue-yellow: #7a5a00;
+  --hue-yellow-bg: #fdf6d3;
+  --hue-green: #067647;
+  --hue-green-bg: #dcf5e7;
+  --hue-blue: #175cd3;
+  --hue-blue-bg: #e0ecfd;
+  --hue-purple: #6941c6;
+  --hue-purple-bg: #efe7fd;
+  --hue-gray: #57606a;
+  --hue-gray-bg: #eef0f2;
+}
+
+body.vscode-dark,
+body.vscode-high-contrast,
+@media (prefers-color-scheme: dark) {
+  :root {
+    --hue-text: #e6edf3;
+    --hue-neutral-bg: #21262d;
+    --hue-red: #ff7b72;
+    --hue-red-bg: #3d1614;
+    --hue-orange: #ffa657;
+    --hue-orange-bg: #3b2410;
+    --hue-yellow: #e3b341;
+    --hue-yellow-bg: #362b0a;
+    --hue-green: #3fb950;
+    --hue-green-bg: #0f2e1c;
+    --hue-blue: #58a6ff;
+    --hue-blue-bg: #0f2444;
+    --hue-purple: #d2a8ff;
+    --hue-purple-bg: #2a1b45;
+    --hue-gray: #8b949e;
+    --hue-gray-bg: #21262d;
+  }
+}
+
+.hue-box {
+  border-left: 4px solid var(--hue-gray);
+  background: var(--hue-neutral-bg);
+  padding: .6em 1em;
+  margin: 1em 0;
+  border-radius: 6px;
+}
+.hue-box p { white-space: pre-line; }
+.hue-box > :first-child { margin-top: 0; }
+.hue-box > :last-child { margin-bottom: 0; }
+.hue-box-title { font-weight: 600; margin-bottom: .35em; }
+
+.hue-red { color: var(--hue-red); }
+:where(.hue-bg-red) { color: var(--hue-text); }
+.hue-bg-red { background: var(--hue-red-bg); padding: 0 .25em; border-radius: 3px; }
+.hue-box-red { border-left-color: var(--hue-red); background: var(--hue-red-bg); }
+.hue-box-red > .hue-box-title { color: var(--hue-red); }
+
+.hue-orange { color: var(--hue-orange); }
+:where(.hue-bg-orange) { color: var(--hue-text); }
+.hue-bg-orange { background: var(--hue-orange-bg); padding: 0 .25em; border-radius: 3px; }
+.hue-box-orange { border-left-color: var(--hue-orange); background: var(--hue-orange-bg); }
+.hue-box-orange > .hue-box-title { color: var(--hue-orange); }
+
+.hue-yellow { color: var(--hue-yellow); }
+:where(.hue-bg-yellow) { color: var(--hue-text); }
+.hue-bg-yellow { background: var(--hue-yellow-bg); padding: 0 .25em; border-radius: 3px; }
+.hue-box-yellow { border-left-color: var(--hue-yellow); background: var(--hue-yellow-bg); }
+.hue-box-yellow > .hue-box-title { color: var(--hue-yellow); }
+
+.hue-green { color: var(--hue-green); }
+:where(.hue-bg-green) { color: var(--hue-text); }
+.hue-bg-green { background: var(--hue-green-bg); padding: 0 .25em; border-radius: 3px; }
+.hue-box-green { border-left-color: var(--hue-green); background: var(--hue-green-bg); }
+.hue-box-green > .hue-box-title { color: var(--hue-green); }
+
+.hue-blue { color: var(--hue-blue); }
+:where(.hue-bg-blue) { color: var(--hue-text); }
+.hue-bg-blue { background: var(--hue-blue-bg); padding: 0 .25em; border-radius: 3px; }
+.hue-box-blue { border-left-color: var(--hue-blue); background: var(--hue-blue-bg); }
+.hue-box-blue > .hue-box-title { color: var(--hue-blue); }
+
+.hue-purple { color: var(--hue-purple); }
+:where(.hue-bg-purple) { color: var(--hue-text); }
+.hue-bg-purple { background: var(--hue-purple-bg); padding: 0 .25em; border-radius: 3px; }
+.hue-box-purple { border-left-color: var(--hue-purple); background: var(--hue-purple-bg); }
+.hue-box-purple > .hue-box-title { color: var(--hue-purple); }
+
+.hue-gray { color: var(--hue-gray); }
+:where(.hue-bg-gray) { color: var(--hue-text); }
+.hue-bg-gray { background: var(--hue-gray-bg); padding: 0 .25em; border-radius: 3px; }
+.hue-box-gray { border-left-color: var(--hue-gray); background: var(--hue-gray-bg); }
+.hue-box-gray > .hue-box-title { color: var(--hue-gray); }

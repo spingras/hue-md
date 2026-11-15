@@ -1,0 +1,31 @@
+#!/bin/sh
+# Git pre-commit hook for Hue Markdown
+# Automatically downgrades staged *.hue.md files to *.md with native GitHub alerts before commit.
+
+if ! command -v node >/dev/null 2>&1; then
+  exit 0
+fi
+
+STAGED_HUE_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.hue\.md$')
+
+if [ -z "$STAGED_HUE_FILES" ]; then
+  exit 0
+fi
+
+echo "[hue-hook] Syncing staged .hue.md files to GitHub alert markdown..."
+
+for FILE in $STAGED_HUE_FILES; do
+  TARGET="${FILE%.hue.md}.md"
+  if [ -f "$FILE" ]; then
+    node -e "
+      const fs = require('fs');
+      const { downgrade } = require('./md-hue/src/downgrade.js');
+      const content = fs.readFileSync('$FILE', 'utf8');
+      fs.writeFileSync('$TARGET', downgrade(content));
+    " 2>/dev/null || npx md-hue downgrade "$FILE" -o "$TARGET" 2>/dev/null
+    git add "$TARGET"
+    echo "[hue-hook]   ✓ Synced $TARGET"
+  fi
+done
+
+exit 0

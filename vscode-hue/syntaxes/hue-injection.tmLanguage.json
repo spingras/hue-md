@@ -1,0 +1,59 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Hue Markdown Injection",
+  "scopeName": "hue.markdown.injection",
+  "injectionSelector": "L:text.html.markdown -markup.raw.code -comment",
+  "patterns": [
+    {
+      "include": "#hue-box-top"
+    },
+    {
+      "include": "#hue-box-side"
+    },
+    {
+      "include": "#hue-box-bottom"
+    },
+    {
+      "include": "#hue-inline-span"
+    }
+  ],
+  "repository": {
+    "hue-box-top": {
+      "match": "^\\s*(?:(┌|╭|\\+)(─+|-+))\\s*(?:([!a-zA-Z#][a-zA-Z0-9_\\-#]*))?(?:\\s+([^─\\-│|\r\n]+?))?\\s*(?:(─+|-+)(┐|╮|\\+))?\\s*$",
+      "captures": {
+        "1": { "name": "punctuation.definition.border.corner.hue" },
+        "2": { "name": "punctuation.definition.border.line.hue" },
+        "3": { "name": "entity.name.tag.hue" },
+        "4": { "name": "markup.heading.hue entity.name.section.hue font.weight.bold" },
+        "5": { "name": "punctuation.definition.border.line.hue" },
+        "6": { "name": "punctuation.definition.border.corner.hue" }
+      }
+    },
+    "hue-box-bottom": {
+      "match": "^\\s*(?:(└|╰|\\+)(─+|-+)(┘|╯|\\+)?)\\s*$",
+      "captures": {
+        "1": { "name": "punctuation.definition.border.corner.hue" },
+        "2": { "name": "punctuation.definition.border.line.hue" },
+        "3": { "name": "punctuation.definition.border.corner.hue" }
+      }
+    },
+    "hue-box-side": {
+      "match": "^\\s*([│|])",
+      "captures": {
+        "1": { "name": "punctuation.definition.border.side.hue" }
+      }
+    },
+    "hue-inline-span": {
+      "name": "meta.hue.span",
+      "match": "(\\{)((?:(?:red|orange|yellow|green|blue|purple|gray|ok|warn|info|note|!|#[0-9a-fA-F]{3,6}|bg-(?:red|orange|yellow|green|blue|purple|gray|#[0-9a-fA-F]{3,6}))(?:\\s*|(?=:)))+)(:)(\\s*)([^{}\r\n]*?)(\\})+",
+      "captures": {
+        "1": { "name": "punctuation.definition.tag.begin.hue" },
+        "2": { "name": "entity.name.tag.hue keyword.other.color.hue" },
+        "3": { "name": "punctuation.separator.key-value.hue" },
+        "4": { "name": "punctuation.whitespace.hue" },
+        "5": { "name": "markup.raw.hue text.hue" },
+        "6": { "name": "punctuation.definition.tag.end.hue" }
+      }
+    }
+  }
+}

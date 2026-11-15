@@ -1,0 +1,10 @@
+<snippet>
+	<content><![CDATA[
++-- warn ${1:Title}
+| ${0:Content}
++--
+]]></content>
+	<tabTrigger>warn</tabTrigger>
+	<scope>text.html.markdown</scope>
+	<description>Hue: Warning Box</description>
+</snippet>

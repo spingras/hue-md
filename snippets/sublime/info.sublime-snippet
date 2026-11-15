@@ -1,0 +1,10 @@
+<snippet>
+	<content><![CDATA[
++-- info ${1:Title}
+| ${0:Content}
++--
+]]></content>
+	<tabTrigger>info</tabTrigger>
+	<scope>text.html.markdown</scope>
+	<description>Hue: Info Box</description>
+</snippet>
