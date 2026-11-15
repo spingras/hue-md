@@ -2,7 +2,7 @@
 import MarkdownIt from 'markdown-it'
 import hue, { css } from '../../src/index.js'
 
-export { renderAnsi } from './ansi.js'
+export { renderAnsi, renderAnsi as renderTerminal } from './ansi.js'
 export { downgrade, downgradeSpans, ALERTS } from './downgrade.js'
 
 const escapeHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])

@@ -223,6 +223,7 @@ footer {
     <p>Type <code>+-- info</code>, <code>ok</code>, <code>note</code>, <code>warn</code>, or <code>!</code>. Readable as plain text, styled everywhere, and 100% compatible with CommonMark &amp; GitHub Alerts.</p>
 
     <div class="hero-badges">
+      <a href="https://www.npmjs.com/package/hue-md"><img src="https://img.shields.io/npm/v/hue-md?color=cb3837&amp;label=npm" alt="npm"></a>
       <a href="https://marketplace.visualstudio.com/items?itemName=spingras.hue-md"><img src="https://img.shields.io/badge/VS%20Code%20Marketplace-spingras.hue--md-007acc" alt="VS Code Marketplace"></a>
       <a href="https://github.com/spingras/hue-md"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
       <a href="https://github.com/spingras/hue-md#built-for-real-world-reliability"><img src="https://img.shields.io/badge/CommonMark-652%2F652%20Pass-brightgreen" alt="CommonMark 652/652 Pass"></a>
@@ -236,6 +237,12 @@ footer {
         <div>
           <div class="dl-title"><span>VS Code Marketplace</span><span class="dl-file">spingras.hue-md</span></div>
           <div class="dl-desc">1-click install from VS Code Marketplace — snippets (<code>info</code> + Tab), live preview (<code>Ctrl+Shift+V</code>) &amp; coloring.</div>
+        </div>
+      </a>
+      <a class="dl-card" href="https://www.npmjs.com/package/hue-md">
+        <div>
+          <div class="dl-title"><span>npm CLI &amp; Package</span><span class="dl-file">npm i -g hue-md</span></div>
+          <div class="dl-desc">Terminal 24-bit ANSI viewer (<code>hue-md view</code>), GitHub Alert downgrade (<code>hue-md downgrade</code>) &amp; JS API.</div>
         </div>
       </a>
       <a class="dl-card" href="https://github.com/spingras/hue-md/releases/latest/download/hue-md-npp-x64.zip">

@@ -1,16 +1,39 @@
 {
-  "name": "markdown-it-hue",
+  "name": "hue-md",
   "version": "0.1.0",
-  "description": "Hue: readable-raw color, background and box syntax for Markdown (markdown-it plugin prototype)",
+  "description": "Hue Markdown (.hue.md): readable-raw color spans, backgrounds, and callout boxes for Markdown — parser, CLI, terminal viewer, and GitHub downgrade",
+  "author": "spingras",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spingras/hue-md.git"
+  },
+  "homepage": "https://spingras.github.io/hue-md/",
+  "bugs": {
+    "url": "https://github.com/spingras/hue-md/issues"
+  },
   "type": "module",
   "main": "src/index.js",
+  "bin": {
+    "hue-md": "bin/hue-md.js",
+    "md-hue": "bin/hue-md.js"
+  },
   "exports": {
     ".": "./src/index.js",
-    "./core": "./src/core.js"
+    "./core": "./src/core.js",
+    "./ansi": "./md-hue/src/ansi.js",
+    "./downgrade": "./md-hue/src/downgrade.js",
+    "./html": "./md-hue/src/index.js",
+    "./css": "./dist/hue.css"
   },
   "files": [
+    "bin",
     "src",
-    "dist"
+    "dist/hue-md.css",
+    "dist/hue.css",
+    "md-hue/src",
+    "md-hue/bin",
+    "spec/spec.md"
   ],
   "scripts": {
     "test": "node --test \"test/**/*.test.js\" \"md-hue/test/**/*.test.js\" \"vscode-hue/test/**/*.test.js\" \"github-hue/test/**/*.test.js\"",
@@ -19,17 +42,19 @@
   },
   "keywords": [
     "markdown",
+    "hue",
+    "hue-md",
     "markdown-it",
     "markdown-it-plugin",
     "color",
     "callout",
-    "box"
+    "box",
+    "cli",
+    "terminal",
+    "ansi",
+    "github"
   ],
-  "license": "MIT",
-  "peerDependencies": {
-    "markdown-it": ">=13"
-  },
-  "devDependencies": {
+  "dependencies": {
     "markdown-it": "^14.1.0"
   }
 }

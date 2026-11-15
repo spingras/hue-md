@@ -3,6 +3,13 @@ name: Deploy Hue MD to GitHub Pages
 on:
   push:
     branches: ["main"]
+    paths:
+      - "site/**"
+      - "demo/**"
+      - "src/**"
+      - "scripts/build-css.js"
+      - "scripts/render-demo.js"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:

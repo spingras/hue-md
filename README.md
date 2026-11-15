@@ -3,6 +3,7 @@
 > **Color and callout boxes for Markdown that still read gracefully as raw text.**
 
 [![Live Playground](https://img.shields.io/badge/Playground-spingras.github.io%2Fhue--md-175cd3)](https://spingras.github.io/hue-md/)
+[![npm](https://img.shields.io/npm/v/hue-md?color=cb3837&label=npm)](https://www.npmjs.com/package/hue-md)
 [![VS Code Marketplace](https://img.shields.io/badge/VS%20Code%20Marketplace-spingras.hue--md-007acc)](https://marketplace.visualstudio.com/items?itemName=spingras.hue-md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CommonMark](https://img.shields.io/badge/CommonMark-652%2F652%20Pass-brightgreen)](#built-for-real-world-reliability)
@@ -47,6 +48,7 @@ Grab the installer for your setup from the [**VS Code Marketplace**](https://mar
 | Platform | Status | Download | What It Does |
 | :--- | :--- | :--- | :--- |
 | 💻 **VS Code / Cursor / Windsurf** | ✅ Verified | [**VS Code Marketplace**](https://marketplace.visualstudio.com/items?itemName=spingras.hue-md) · [**`.vsix`**](https://github.com/spingras/hue-md/releases/latest/download/hue-md-0.1.1.vsix) | Search `Hue MD` (`spingras.hue-md`) in VS Code Extensions. Type `info`, `ok`, `note`, `warn` + <kbd>Tab</kbd> for boxes, live preview (`Ctrl+Shift+V`), and editor coloring. |
+| 📦 **npm CLI & JS Package** | ✅ Verified | [**`npm i -g hue-md`**](https://www.npmjs.com/package/hue-md) | Terminal 24-bit ANSI viewer (`hue-md view`), GitHub Alert downgrade (`hue-md downgrade`), HTML exporter (`hue-md html`), and `markdown-it` plugin. |
 | 📝 **Notepad++ (Windows x64)** | ✅ Verified | [**`hue-md-npp-x64.zip`**](https://github.com/spingras/hue-md/releases/latest/download/hue-md-npp-x64.zip) | Native `hue-md.dll` plugin with a docked side-by-side Live Preview (`Ctrl+Shift+H`), editor coloring, and 1-click box menu actions. |
 | 🎨 **Web Stylesheet** | ✅ Verified | [**`hue-md.css`**](https://github.com/spingras/hue-md/releases/latest/download/hue-md.css) | Drop-in light & dark mode CSS stylesheet for any website or docs site. |
 | 💎 **Obsidian Plugin** | 🧪 Preview | [**`hue-md-obsidian.zip`**](https://github.com/spingras/hue-md/releases/latest/download/hue-md-obsidian.zip) | Obsidian plugin (`manifest.json`, `main.js`, `styles.css`) for rendering Hue spans and boxes in your vault + Command Palette box insertion. |
@@ -163,12 +165,9 @@ Wrap any phrase in `{style: text}`:
   <img alt="hue-md view in terminal with 24-bit ANSI truecolor frames" src="assets/terminal.svg" width="100%">
 </p>
 
-To use the `hue-md` CLI locally from this repository:
+Install globally from npm (or run directly with `npx hue-md`):
 ```sh
-git clone https://github.com/spingras/hue-md.git
-cd hue-md
-npm install
-npm link   # makes `hue-md` available globally in your shell
+npm install -g hue-md
 ```
 
 Then run:
@@ -199,12 +198,16 @@ Hue MD was engineered so you can turn it on across all your Markdown files witho
 
 ## For Developers & Integrators
 
-Hue MD is built as a dependency-free core (`src/core.js`, `src/palette.js`) plus a `markdown-it` plugin (`src/index.js`) and CLI/renderer toolkit (`md-hue/`).
+Install the unified `hue-md` package from npm:
+```sh
+npm install hue-md markdown-it
+```
 
 ```js
 import MarkdownIt from 'markdown-it'
-import hue, { css } from './src/index.js'
-import { downgrade, renderTerminal } from './md-hue/src/index.js'
+import hue, { css } from 'hue-md'
+import { downgrade } from 'hue-md/downgrade'
+import { renderAnsi } from 'hue-md/ansi'
 
 // 1. Render Hue Markdown to HTML
 const md = new MarkdownIt().use(hue)
@@ -215,7 +218,7 @@ const stylesheet = css() // light + dark CSS custom properties
 const gfm = downgrade(sourceText)
 
 // 3. Render 24-bit ANSI truecolor for terminals
-const ansi = renderTerminal(sourceText, { width: 80, theme: 'dark' })
+const ansi = renderAnsi(sourceText, { width: 80, theme: 'dark' })
 ```
 
 - **Language Specification**: [spec/spec.md](spec/spec.md) defines the grammar and 58 executable specification examples.
