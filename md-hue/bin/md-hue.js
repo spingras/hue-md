@@ -1,16 +1,16 @@
 #!/usr/bin/env node
-// md-hue: command-line tools for Hue Markdown (.hue.md)
+// hue-md: command-line tools for Hue Markdown (.hue.md)
 import { readFileSync, writeFileSync } from 'node:fs'
 import { renderAnsi } from '../src/ansi.js'
 import { downgrade } from '../src/downgrade.js'
 import { toHtml } from '../src/index.js'
 
-const HELP = `md-hue: tools for Hue Markdown (.hue.md)
+const HELP = `hue-md: tools for Hue Markdown (.hue.md)
 
 Usage:
-  md-hue view <file>        Show a file in the terminal with colors and boxes
-  md-hue downgrade <file>   Convert to GitHub Markdown (boxes become alerts)
-  md-hue html <file>        Convert to HTML (add --standalone for a full page)
+  hue-md view <file>        Show a file in the terminal with colors and boxes
+  hue-md downgrade <file>   Convert to GitHub Markdown (boxes become alerts)
+  hue-md html <file>        Convert to HTML (add --standalone for a full page)
 
 Use "-" as <file> to read standard input.
 
@@ -42,7 +42,7 @@ function parseArgs (argv) {
 }
 
 function fail (msg) {
-  process.stderr.write(`md-hue: ${msg}\n\n${HELP}`)
+  process.stderr.write(`hue-md: ${msg}\n\n${HELP}`)
   process.exit(2)
 }
 
