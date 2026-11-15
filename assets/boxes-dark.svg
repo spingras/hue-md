@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="470" viewBox="0 0 1200 470" data-theme="dark">
+<title>Hue Markdown: all 5 semantic callout boxes (info, ok, note, warn, !)</title>
+<foreignObject x="0" y="0" width="1200" height="470">
+<div xmlns="http://www.w3.org/1999/xhtml" class="frame">
+<style>
+/* Hue theme: generated from src/palette.js */
+:root {
+  --hue-text: #1f2328;
+  --hue-neutral-bg: #eef0f2;
+  --hue-red: #b42318;
+  --hue-red-bg: #fde8e7;
+  --hue-orange: #b54708;
+  --hue-orange-bg: #fdeedc;
+  --hue-yellow: #7a5a00;
+  --hue-yellow-bg: #fdf6d3;
+  --hue-green: #067647;
+  --hue-green-bg: #dcf5e7;
+  --hue-blue: #175cd3;
+  --hue-blue-bg: #e0ecfd;
+  --hue-purple: #6941c6;
+  --hue-purple-bg: #efe7fd;
+  --hue-gray: #57606a;
+  --hue-gray-bg: #eef0f2;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --hue-text: #e6edf3;
+    --hue-neutral-bg: #21262d;
+  --hue-red: #ff7b72;
+  --hue-red-bg: #3d1614;
+  --hue-orange: #ffa657;
+  --hue-orange-bg: #3b2410;
+  --hue-yellow: #e3b341;
+  --hue-yellow-bg: #362b0a;
+  --hue-green: #3fb950;
+  --hue-green-bg: #0f2e1c;
+  --hue-blue: #58a6ff;
+  --hue-blue-bg: #0f2444;
+  --hue-purple: #d2a8ff;
+  --hue-purple-bg: #2a1b45;
+  --hue-gray: #8b949e;
+  --hue-gray-bg: #21262d;
+  }
+}
+:root[data-theme="dark"] {
+  --hue-text: #e6edf3;
+  --hue-neutral-bg: #21262d;
+  --hue-red: #ff7b72;
+  --hue-red-bg: #3d1614;
+  --hue-orange: #ffa657;
+  --hue-orange-bg: #3b2410;
+  --hue-yellow: #e3b341;
+  --hue-yellow-bg: #362b0a;
+  --hue-green: #3fb950;
+  --hue-green-bg: #0f2e1c;
+  --hue-blue: #58a6ff;
+  --hue-blue-bg: #0f2444;
+  --hue-purple: #d2a8ff;
+  --hue-purple-bg: #2a1b45;
+  --hue-gray: #8b949e;
+  --hue-gray-bg: #21262d;
+}
+.hue-box { border-left: 4px solid var(--hue-gray); background: var(--hue-neutral-bg); padding: .6em 1em; margin: 1em 0; border-radius: 6px; }
+.hue-box p { white-space: pre-line; }
+.hue-box > :first-child { margin-top: 0; }
+.hue-box > :last-child { margin-bottom: 0; }
+.hue-box-title { font-weight: 600; margin-bottom: .35em; }
+.hue-red { color: var(--hue-red); }
+:where(.hue-bg-red) { color: var(--hue-text); }
+.hue-bg-red { background: var(--hue-red-bg); padding: 0 .2em; border-radius: 3px; }
+.hue-box-red { border-left-color: var(--hue-red); background: var(--hue-red-bg); }
+.hue-box-red > .hue-box-title { color: var(--hue-red); }
+.hue-orange { color: var(--hue-orange); }
+:where(.hue-bg-orange) { color: var(--hue-text); }
+.hue-bg-orange { background: var(--hue-orange-bg); padding: 0 .2em; border-radius: 3px; }
+.hue-box-orange { border-left-color: var(--hue-orange); background: var(--hue-orange-bg); }
+.hue-box-orange > .hue-box-title { color: var(--hue-orange); }
+.hue-yellow { color: var(--hue-yellow); }
+:where(.hue-bg-yellow) { color: var(--hue-text); }
+.hue-bg-yellow { background: var(--hue-yellow-bg); padding: 0 .2em; border-radius: 3px; }
+.hue-box-yellow { border-left-color: var(--hue-yellow); background: var(--hue-yellow-bg); }
+.hue-box-yellow > .hue-box-title { color: var(--hue-yellow); }
+.hue-green { color: var(--hue-green); }
+:where(.hue-bg-green) { color: var(--hue-text); }
+.hue-bg-green { background: var(--hue-green-bg); padding: 0 .2em; border-radius: 3px; }
+.hue-box-green { border-left-color: var(--hue-green); background: var(--hue-green-bg); }
+.hue-box-green > .hue-box-title { color: var(--hue-green); }
+.hue-blue { color: var(--hue-blue); }
+:where(.hue-bg-blue) { color: var(--hue-text); }
+.hue-bg-blue { background: var(--hue-blue-bg); padding: 0 .2em; border-radius: 3px; }
+.hue-box-blue { border-left-color: var(--hue-blue); background: var(--hue-blue-bg); }
+.hue-box-blue > .hue-box-title { color: var(--hue-blue); }
+.hue-purple { color: var(--hue-purple); }
+:where(.hue-bg-purple) { color: var(--hue-text); }
+.hue-bg-purple { background: var(--hue-purple-bg); padding: 0 .2em; border-radius: 3px; }
+.hue-box-purple { border-left-color: var(--hue-purple); background: var(--hue-purple-bg); }
+.hue-box-purple > .hue-box-title { color: var(--hue-purple); }
+.hue-gray { color: var(--hue-gray); }
+:where(.hue-bg-gray) { color: var(--hue-text); }
+.hue-bg-gray { background: var(--hue-gray-bg); padding: 0 .2em; border-radius: 3px; }
+.hue-box-gray { border-left-color: var(--hue-gray); background: var(--hue-gray-bg); }
+.hue-box-gray > .hue-box-title { color: var(--hue-gray); }
+
+.frame { box-sizing: border-box; width: 1200px; height: 470px; padding: 18px; display: flex; gap: 18px;
+  background: #0d1117; color: #e6edf3; font: 14px/1.45 -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; border: 1px solid #30363d; border-radius: 12px; }
+.pane { flex: 1; min-width: 0; border: 1px solid #30363d; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
+.bar { padding: 7px 14px; font: 600 12px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; color: #8b949e; background: #161b22; border-bottom: 1px solid #30363d; }
+.src { margin: 0; padding: 12px 16px; flex: 1; background: #161b22; font: 12.2px/1.45 ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace; white-space: pre-wrap; color: #e6edf3; }
+.out { padding: 8px 18px; flex: 1; }
+.out code { font: .88em ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace; background: #161b22; padding: .1em .35em; border-radius: 4px; }
+.out .hue-box { margin: .55em 0; padding: .48em .9em; }
+</style>
+<div class="pane"><div class="bar">5 semantic callout boxes · raw plain text</div><pre class="src">+-- info Effortless Boxes
+| Start with `+--` followed by `info`, `ok`, `note`, `warn`, or `!`.
+| Every `|` line automatically starts on a new line.
++--
+
++-- ok Full Markdown Inside
+| Boxes support **bold**, *italics*, `inline code`, and {ok: colored spans}.
++--
+
++-- note GitHub Ready
+| Run `hue-md downgrade` to convert Hue boxes into native GitHub Alerts.
++--
+
++-- warn Heads Up
+| Public API endpoints are rate-limited to {warn: 100 requests/min}.
++--
+
++-- ! Never Commit Secrets
+| Keep `.env` files out of git and rotate leaked keys {!: immediately}.
++--</pre></div>
+<div class="pane"><div class="bar">Rendered output · info, ok, note, warn, !</div><div class="out"><div class="hue-box hue-box-blue" role="note">
+<div class="hue-box-title">Effortless Boxes</div>
+<p>Start with <code>+--</code> followed by <code>info</code>, <code>ok</code>, <code>note</code>, <code>warn</code>, or <code>!</code>.
+Every <code>|</code> line automatically starts on a new line.</p>
+</div>
+<div class="hue-box hue-box-green" role="note">
+<div class="hue-box-title">Full Markdown Inside</div>
+<p>Boxes support <strong>bold</strong>, <em>italics</em>, <code>inline code</code>, and <span class="hue hue-green">colored spans</span>.</p>
+</div>
+<div class="hue-box hue-box-purple" role="note">
+<div class="hue-box-title">GitHub Ready</div>
+<p>Run <code>hue-md downgrade</code> to convert Hue boxes into native GitHub Alerts.</p>
+</div>
+<div class="hue-box hue-box-orange" role="note">
+<div class="hue-box-title">Heads Up</div>
+<p>Public API endpoints are rate-limited to <span class="hue hue-orange">100 requests/min</span>.</p>
+</div>
+<div class="hue-box hue-box-red" role="note">
+<div class="hue-box-title">Never Commit Secrets</div>
+<p>Keep <code>.env</code> files out of git and rotate leaked keys <span class="hue hue-red">immediately</span>.</p>
+</div>
+</div></div>
+</div>
+</foreignObject>
+</svg>

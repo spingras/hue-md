@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 340" width="100%">
+  <defs>
+    <style>
+      .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
+    </style>
+  </defs>
+  <rect x="1" y="1" width="918" height="338" rx="10" fill="#0d1117" stroke="#30363d" stroke-width="1.5"/>
+  <rect x="1" y="1" width="918" height="36" rx="10" fill="#161b22" stroke="#30363d"/>
+  <circle cx="22" cy="19" r="5.5" fill="#ff5f56"/>
+  <circle cx="40" cy="19" r="5.5" fill="#ffbd2e"/>
+  <circle cx="58" cy="19" r="5.5" fill="#27c93f"/>
+  <text x="460" y="24" text-anchor="middle" class="mono" font-size="12.5" fill="#8b949e">hue-md view demo/demo.hue.md (24-bit ANSI Truecolor)</text>
+
+  <g class="mono" font-size="13.5" fill="#e6edf3">
+    <text x="26" y="66"><tspan fill="#3fb950">$</tspan> hue-md view demo/demo.hue.md</text>
+    <text x="26" y="96" font-weight="700">Hue Markdown</text>
+    <text x="26" y="122">Build: <tspan fill="#3fb950">passing</tspan> · Coverage: <tspan fill="#ffa657">71%</tspan> · Deploy: <tspan fill="#ff7b72">blocked</tspan></text>
+
+    <!-- Unicode box 1 -->
+    <text x="26" y="156" fill="#58a6ff">┌─ <tspan font-weight="700">Effortless Boxes</tspan> ───────────────────────────────────────────────┐</text>
+    <text x="26" y="178"><tspan fill="#58a6ff">│</tspan> Start with +-- followed by info, ok, note, warn, or !            <tspan fill="#58a6ff">│</tspan></text>
+    <text x="26" y="200"><tspan fill="#58a6ff">│</tspan> Every | line automatically starts on a new line                  <tspan fill="#58a6ff">│</tspan></text>
+    <text x="26" y="222" fill="#58a6ff">└──────────────────────────────────────────────────────────────────┘</text>
+
+    <!-- Unicode box 2 -->
+    <text x="26" y="256" fill="#ff7b72">┌─ <tspan font-weight="700">Never Commit Secrets</tspan> ───────────────────────────────────────────┐</text>
+    <text x="26" y="278"><tspan fill="#ff7b72">│</tspan> Keep .env files out of git and rotate leaked keys <tspan fill="#ff7b72" font-weight="700">immediately</tspan>.   <tspan fill="#ff7b72">│</tspan></text>
+    <text x="26" y="300" fill="#ff7b72">└──────────────────────────────────────────────────────────────────┘</text>
+  </g>
+</svg>

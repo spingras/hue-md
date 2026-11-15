@@ -10,17 +10,23 @@ New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
 
 # 1. CSS & Landing Page
 & node (Join-Path $repoRoot "scripts\build-css.js")
+& node (Join-Path $repoRoot "scripts\build-hero.js")
+& node (Join-Path $repoRoot "scripts\generate-readme-assets.js")
 & node (Join-Path $repoRoot "scripts\render-demo.js")
 Copy-Item (Join-Path $repoRoot "dist\hue-md.css") (Join-Path $releaseDir "hue-md.css") -Force
 
-# 2. VS Code Extension (hue-md-0.1.0.vsix)
-$vsixPath = Join-Path $repoRoot "vscode-hue\hue-md-0.1.0.vsix"
-if (-not (Test-Path $vsixPath)) {
+# 2. VS Code Extension (hue-md-*.vsix)
+$vsixFiles = @(Get-ChildItem -Path (Join-Path $repoRoot "vscode-hue") -Filter "hue-md-*.vsix" -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending)
+if ($vsixFiles.Count -eq 0) {
   Push-Location (Join-Path $repoRoot "vscode-hue")
-  & npx @vscode/vsce package --no-dependencies
+  & node build.js
+  & npx --yes @vscode/vsce package --no-dependencies
   Pop-Location
+  $vsixFiles = @(Get-ChildItem -Path (Join-Path $repoRoot "vscode-hue") -Filter "hue-md-*.vsix" | Sort-Object LastWriteTime -Descending)
 }
-Copy-Item $vsixPath (Join-Path $releaseDir "hue-md-0.1.0.vsix") -Force
+foreach ($v in $vsixFiles) {
+  Copy-Item $v.FullName (Join-Path $releaseDir $v.Name) -Force
+}
 
 # 3. Notepad++ x64 Plugin (hue-md-npp-x64.zip)
 $nppDll = Join-Path $repoRoot "notepadpp-hue\dist\hue-md\hue-md.dll"

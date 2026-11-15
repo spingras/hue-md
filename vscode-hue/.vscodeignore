@@ -3,5 +3,6 @@
 src/**
 test/**
 build.js
+dist/*.map
 node_modules/**
 *.vsix

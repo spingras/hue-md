@@ -122,7 +122,6 @@ export function runAction (options = {}) {
 
   if (checkOnly && outOfSyncCount > 0) {
     console.error(`[Hue Action] Error: ${outOfSyncCount} file(s) are out of sync with their .hue.md source. Run 'hue-md downgrade' or pre-commit hook.`)
-    if (process.env.GITHUB_ACTIONS) process.exit(1)
     return { success: false, outOfSyncCount, processed }
   }
 
@@ -146,5 +145,6 @@ export function runAction (options = {}) {
 
 // Run if called directly
 if (process.argv[1] && (process.argv[1].endsWith('index.js') || process.argv[1].endsWith('index.cjs'))) {
-  runAction()
+  const res = runAction()
+  if (!res.success) process.exit(1)
 }

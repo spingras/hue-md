@@ -62,7 +62,16 @@ function boxToAlert (lines, opts) {
   const style = parsed?.style || { fg: null, bg: null }
   const title = parsed?.title || ''
   const interior = lines.slice(1, -1).map((l) => stripSide(l.slice(Math.min(prefix.length, linePrefix(l).length)).trimStart()))
-  const body = downgrade(interior.join('\n'), opts).replace(/\n$/, '').split('\n')
+  const downgradedInterior = downgrade(interior.join('\n'), opts).replace(/\n$/, '')
+  const body = downgradedInterior.split('\n')
+  for (const t of md.parse(downgradedInterior, {})) {
+    if (t.type === 'paragraph_open' && t.map) {
+      const [s, e] = t.map
+      for (let k = s; k < e - 1; k++) {
+        if (body[k] && !body[k].endsWith('  ') && !body[k].endsWith('\\')) body[k] += '  '
+      }
+    }
+  }
   const kind = ALERTS[style.fg || style.bg]
   const out = []
   if (kind) out.push(`> [!${kind}]`)

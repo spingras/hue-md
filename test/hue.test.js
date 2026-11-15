@@ -65,6 +65,18 @@ test('spans work inside link text', () => {
   assert.equal(r('[{red: go}](/x)'), '<p><a href="/x"><span class="hue hue-red">go</span></a></p>')
 })
 
+test('math formulas and set-builder notation stay literal', () => {
+  const plain = new MarkdownIt()
+  const samples = [
+    'Set notation: $S = \\{x \\in \\mathbb{R} : x > 0\\}$ and $\{k: v\\}$.',
+    'LaTeX color macro: $\\color{red}{\\text{warning}} + \\frac{a}{b}$.',
+    '$$\n\\begin{cases}\na: 1 \\\\\nb: 2\n\\end{cases}\n$$'
+  ]
+  for (const s of samples) {
+    assert.equal(md.render(s), plain.render(s))
+  }
+})
+
 // ------------------------------------------------------------ boxes
 
 test('unicode box with color and title, inner markdown parsed', () => {

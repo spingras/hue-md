@@ -15,7 +15,7 @@
   "scripts": {
     "test": "node --test \"test/**/*.test.js\" \"md-hue/test/**/*.test.js\" \"vscode-hue/test/**/*.test.js\" \"github-hue/test/**/*.test.js\"",
     "build:css": "node scripts/build-css.js",
-    "demo": "node scripts/render-demo.js"
+    "demo": "node scripts/build-hero.js && node scripts/generate-readme-assets.js && node scripts/render-demo.js"
   },
   "keywords": [
     "markdown",

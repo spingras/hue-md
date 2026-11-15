@@ -1,51 +1,62 @@
-# Hue Markdown for Visual Studio Code
+# Hue MD (`hue-md`) for Visual Studio Code
 
-Native color spans, badges, and styled callout boxes for Markdown (`.hue.md` and `.md`).
+> **Color and callout boxes for Markdown that still read gracefully as raw text.**
 
-Hue Markdown brings readable-raw color, background tints, and drawn ASCII/Unicode boxes to Markdown that still read gracefully as plain text.
+**Hue MD** brings inline color spans (`{ok: passing}`, `{warn: 71%}`, `{!: blocked}`) and effortless callout boxes (`+-- info`, `ok`, `note`, `warn`, `!`) to Markdown (`.hue.md` and `.md`) with live side-by-side preview, instant snippets, and 1-click GitHub Alert export.
 
-![Hue Demo Preview](../demo/demo.png)
+![Hue MD Side-by-Side Live Preview](https://raw.githubusercontent.com/spingras/hue-md/main/assets/hero-dark.jpg)
+
+[**Live Interactive Playground → spingras.github.io/hue-md**](https://spingras.github.io/hue-md/) · [**GitHub Repository**](https://github.com/spingras/hue-md)
+
+---
 
 ## Features
 
-- 🎨 **Live Side-by-Side Preview**: Full integration with VS Code's built-in Markdown preview (`Ctrl+Shift+V` or click the Split Preview icon). Color spans and drawn boxes render into styled badges and cards with full dark and light theme support.
-- 🖋️ **Editor Syntax Highlighting**: Rich TextMate grammar coloring for `.hue.md` files: curly braces, semantic color tags (`ok`, `warn`, `info`, `note`, `!`), background tints (`bg-yellow`), hex colors (`#hex`), and box borders (`┌──`, `│`, `└──`, `+--`, `|`).
-- ⚡ **Editor Color Decorations**: Live subtle color and box border tinting right inside the text editor.
-- 🔄 **Downgrade to GitHub Alerts**: One-click command `Hue: Convert to GitHub Alert Markdown (.md)` automatically converts boxes into native GitHub alerts (`> [!NOTE]`, `> [!WARNING]`, etc.) for sharing with standard viewers.
+- ⚡ **Instant Box Snippets**: Type `info`, `ok`, `note`, `warn`, or `danger` and press <kbd>Tab</kbd> to insert a callout box.
+- ↩️ **Effortless Line Continuation**: Press <kbd>Enter</kbd> inside a box to automatically insert `| ` on the next line; press <kbd>Enter</kbd> on an empty `| ` line to close with `+--`.
+- 🎨 **Live Side-by-Side Preview (`Ctrl+Shift+V`)**: Renders inline color spans, background highlights, and callout boxes with WCAG AA light & dark theme contrast.
+- 🖋️ **Editor Syntax Coloring & Decorations**: Highlights Hue tokens, hex values, and box borders directly inside the editor.
+- 🔄 **1-Click GitHub Alert Export**: Run `Hue: Convert to GitHub Alert Markdown (.md)` to compile boxes into native GitHub Alerts (`> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!WARNING]`, `> [!CAUTION]`).
 
-## Syntax Quick Reference
+---
 
-### Inline Spans
+## Syntax in 60 Seconds
+
 ```markdown
+# Hue Markdown
+
 Build: {ok: passing} · Coverage: {warn: 71%} · Deploy: {!: blocked}
-Highlight: {bg-yellow: phrase} · Combination: {blue bg-gray: text}
-Hex color: {#c0ffee bg-#333333: exact hex}
+
+Highlight {bg-yellow: key phrases}, combine {blue bg-gray: text and background},
+or reach for an exact {#c0ffee bg-#333333: hex color} when the palette is not enough.
+Normal prose like {a: 1} or {key: value} stays untouched.
+
++-- info Effortless Boxes
+| Start with `+--` followed by `info`, `ok`, `note`, `warn`, or `!`
+| Every `|` line automatically starts on a new line
+| Close with `+--` — no right border or alignment needed
++--
+
++-- ! Never Commit Secrets
+| Keep `.env` files out of git.
+| - Add `.env` to `.gitignore`
+| - Rotate any key that leaked {!: immediately}
++--
 ```
 
-### Callout Boxes
-```markdown
-┌── ! Never commit secrets ──────────────┐
-│ Keep `.env` files out of git.          │
-│ - Add `.env` to `.gitignore`           │
-│ - Rotate any key that leaked {!: now}  │
-└────────────────────────────────────────┘
+---
 
-+-- info Typing tip -----------------+
-| ASCII boxes work too: `+-+` and `|`|
-+------------------------------------+
+## Commands (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 
-╭── ok ──────────────────────────────╮
-│ Rounded corners, no title, and     │
-│ **any Markdown** inside            │
-╰────────────────────────────────────╯
-```
+- **`Hue: Open Side-by-Side Preview`**: Split editor with live rendered preview
+- **`Hue: Insert Box...`**: Pick `info`, `ok`, `note`, `warn`, or `!` from a quick menu
+- **`Hue: Wrap Selection in Box...`**: Wrap selected lines in a Hue callout box
+- **`Hue: Convert to GitHub Alert Markdown (.md)`**: Convert `.hue.md` to GitHub Flavored Markdown
 
-## Shortcuts & Commands
+---
 
-- `Ctrl+Shift+V` / `Ctrl+K V`: Open Markdown Preview (rendered with Hue theme)
-- `Ctrl+Shift+P` -> `Hue: Open Side-by-Side Preview`: Split editor with live preview
-- `Ctrl+Shift+P` -> `Hue: Convert to GitHub Alert Markdown (.md)`: Downgrades current file to CommonMark + GitHub alerts
+## Supporting Hue MD (100% FOSS · MIT)
 
-## License
-
-MIT
+- ☕ **Ko-fi**: [ko-fi.com/hue_md](https://ko-fi.com/hue_md)
+- 💖 **Patreon**: [patreon.com/hue_md](https://patreon.com/hue_md)
+- ⭐ **GitHub**: [github.com/spingras/hue-md](https://github.com/spingras/hue-md)

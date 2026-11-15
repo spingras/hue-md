@@ -2,10 +2,18 @@
   "name": "hue-md",
   "displayName": "Hue MD",
   "description": "Rich color spans and styled callout boxes for Markdown (.hue.md) with live side-by-side preview and editor highlighting",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "spingras",
   "license": "MIT",
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#0d1117",
+    "theme": "dark"
+  },
   "homepage": "https://spingras.github.io/hue-md",
+  "bugs": {
+    "url": "https://github.com/spingras/hue-md/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/spingras/hue-md.git"
@@ -119,7 +127,21 @@
           "when": "resourceExtname == .hue.md"
         }
       ]
-    }
+    },
+    "keybindings": [
+      {
+        "command": "hue.openPreviewSideBySide",
+        "key": "ctrl+k v",
+        "mac": "cmd+k v",
+        "when": "editorLangId == hue-markdown"
+      },
+      {
+        "command": "hue.openPreviewSideBySide",
+        "key": "ctrl+shift+v",
+        "mac": "shift+cmd+v",
+        "when": "editorLangId == hue-markdown"
+      }
+    ]
   },
   "scripts": {
     "build": "node build.js",

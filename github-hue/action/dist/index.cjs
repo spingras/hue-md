@@ -11492,7 +11492,16 @@ function boxToAlert(lines, opts) {
   const style = parsed?.style || { fg: null, bg: null };
   const title = parsed?.title || "";
   const interior = lines.slice(1, -1).map((l) => stripSide(l.slice(Math.min(prefix.length, linePrefix(l).length)).trimStart()));
-  const body = downgrade(interior.join("\n"), opts).replace(/\n$/, "").split("\n");
+  const downgradedInterior = downgrade(interior.join("\n"), opts).replace(/\n$/, "");
+  const body = downgradedInterior.split("\n");
+  for (const t of md.parse(downgradedInterior, {})) {
+    if (t.type === "paragraph_open" && t.map) {
+      const [s, e] = t.map;
+      for (let k = s; k < e - 1; k++) {
+        if (body[k] && !body[k].endsWith("  ") && !body[k].endsWith("\\")) body[k] += "  ";
+      }
+    }
+  }
   const kind = ALERTS[style.fg || style.bg];
   const out = [];
   if (kind) out.push(`> [!${kind}]`);
@@ -11660,7 +11669,6 @@ function runAction(options = {}) {
   }
   if (checkOnly && outOfSyncCount > 0) {
     console.error(`[Hue Action] Error: ${outOfSyncCount} file(s) are out of sync with their .hue.md source. Run 'hue-md downgrade' or pre-commit hook.`);
-    if (process.env.GITHUB_ACTIONS) process.exit(1);
     return { success: false, outOfSyncCount, processed };
   }
   if (shouldCommit && updatedTargets.length > 0) {
@@ -11680,7 +11688,8 @@ function runAction(options = {}) {
   return { success: true, outOfSyncCount, processed };
 }
 if (process.argv[1] && (process.argv[1].endsWith("index.js") || process.argv[1].endsWith("index.cjs"))) {
-  runAction();
+  const res = runAction();
+  if (!res.success) process.exit(1);
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Install dependencies & run tests
         run: |
@@ -35,10 +35,4 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: |
-            dist/release/hue-md-0.1.0.vsix
-            dist/release/hue-md-npp-x64.zip
-            dist/release/hue-md.user.js
-            dist/release/hue-md-browser.zip
-            dist/release/hue-md-snippets.zip
-            dist/release/hue-md.css
+          files: dist/release/*

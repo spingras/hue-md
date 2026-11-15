@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import MarkdownIt from 'markdown-it'
-import hue from 'markdown-it-hue'
+import hue from '../../src/index.js'
 import { downgrade, downgradeSpans } from '../src/downgrade.js'
 import { parseSpecExamples } from '../../spec/parse-spec.js'
 
@@ -59,20 +59,22 @@ test('hue fences are unwrapped and downgraded', () => {
   assert.equal(downgrade('```hue\n┌─ ok ─┐\n│ x │\n└──┘\n```'), '> [!TIP]\n> x')
 })
 
-test('minimal open boxes downgrade to GitHub alerts', () => {
+test('minimal open boxes downgrade to GitHub alerts and preserve line breaks', () => {
   const src = [
     '+-- info Pro Tip',
     '| First point',
     '| Second point',
     '+--'
   ].join('\n')
-  assert.equal(downgrade(src), [
+  const out = downgrade(src)
+  assert.equal(out, [
     '> [!NOTE]',
     '> **Pro Tip**',
     '>',
-    '> First point',
+    '> First point  ',
     '> Second point'
   ].join('\n'))
+  assert.match(plain.render(out), /First point<br>\nSecond point/)
 })
 
 test('code is never touched', () => {

@@ -27,13 +27,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Install dependencies & build site
         run: |
           npm ci
           node scripts/build-css.js
-          node scripts/render-demo.js
+          npm run demo
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

@@ -1,8 +1,57 @@
 // VS Code extension for Hue Markdown
 import * as vscode from 'vscode'
-import hue from '../../src/index.js'
+import MarkdownIt from 'markdown-it'
+import hue, { css } from '../../src/index.js'
 import { COLORS, resolveColor, parseSpec, parseTop, stripSide, BOX_TOP, BOX_BOTTOM, BOX_SIDE } from '../../src/core.js'
 import { downgrade } from '../../md-hue/src/downgrade.js'
+
+const mdEngine = new MarkdownIt({ html: false, linkify: true }).use(hue)
+let previewPanel = null
+let previewDocUri = null
+
+function renderPreviewHtml (doc) {
+  const bodyHtml = mdEngine.render(doc.getText())
+  const isDark = vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.Dark ||
+    vscode.window.activeColorTheme.kind === vscode.ColorThemeKind.HighContrast
+  const themeAttr = isDark ? 'dark' : 'light'
+  return `<!doctype html>
+<html lang="en" data-theme="${themeAttr}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+${css()}
+body {
+  font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  padding: 20px 28px;
+  color: var(--vscode-editor-foreground, var(--hue-text));
+  background: var(--vscode-editor-background, transparent);
+}
+h1, h2, h3 {
+  border-bottom: 1px solid rgba(127, 127, 127, 0.2);
+  padding-bottom: 0.25em;
+}
+code {
+  font-family: var(--vscode-editor-font-family, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 0.9em;
+  background: rgba(127, 127, 127, 0.15);
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+}
+pre {
+  background: rgba(127, 127, 127, 0.12);
+  padding: 12px 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+pre code { background: none; padding: 0; }
+</style>
+</head>
+<body>
+${bodyHtml}
+</body>
+</html>`
+}
 
 // Decoration types cache for colors & backgrounds
 let decorationTypes = null
@@ -148,9 +197,32 @@ function updateDecorations (editor) {
 }
 
 export function activate (context) {
-  // Command: Open Side-by-Side preview
+  // Command: Open Side-by-Side preview (works for both .hue.md and .md)
   const openPreviewCmd = vscode.commands.registerCommand('hue.openPreviewSideBySide', async () => {
-    await vscode.commands.executeCommand('markdown.showPreviewToSide')
+    const editor = vscode.window.activeTextEditor
+    if (!editor) return
+    const doc = editor.document
+    previewDocUri = doc.uri.toString()
+    const fileName = doc.fileName.split(/[\\/]/).pop()
+
+    if (previewPanel) {
+      previewPanel.title = `Preview ${fileName}`
+      previewPanel.webview.html = renderPreviewHtml(doc)
+      previewPanel.reveal(vscode.ViewColumn.Beside, true)
+      return
+    }
+
+    previewPanel = vscode.window.createWebviewPanel(
+      'hueMdPreview',
+      `Preview ${fileName}`,
+      { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true },
+      { enableScripts: false }
+    )
+    previewPanel.webview.html = renderPreviewHtml(doc)
+    previewPanel.onDidDispose(() => {
+      previewPanel = null
+      previewDocUri = null
+    }, null, context.subscriptions)
   })
   context.subscriptions.push(openPreviewCmd)
 
@@ -236,12 +308,23 @@ export function activate (context) {
 
   vscode.window.onDidChangeActiveTextEditor(editor => {
     activeEditor = editor
-    if (editor) updateDecorations(editor)
+    if (editor) {
+      updateDecorations(editor)
+      if (previewPanel && (editor.document.languageId === 'hue-markdown' || editor.document.languageId === 'markdown')) {
+        previewDocUri = editor.document.uri.toString()
+        const fileName = editor.document.fileName.split(/[\\/]/).pop()
+        previewPanel.title = `Preview ${fileName}`
+        previewPanel.webview.html = renderPreviewHtml(editor.document)
+      }
+    }
   }, null, context.subscriptions)
 
   vscode.workspace.onDidChangeTextDocument(event => {
     if (activeEditor && event.document === activeEditor.document) {
       updateDecorations(activeEditor)
+    }
+    if (previewPanel && event.document.uri.toString() === previewDocUri) {
+      previewPanel.webview.html = renderPreviewHtml(event.document)
     }
   }, null, context.subscriptions)
 

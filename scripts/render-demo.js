@@ -80,9 +80,29 @@ header {
 }
 .btn:hover { border-color: var(--accent); }
 .btn-primary { background: var(--hue-blue); color: #fff; border-color: var(--hue-blue); }
+.btn-sponsor { background: var(--hue-red-bg); color: var(--hue-red); border-color: var(--hue-red); }
 .hero { padding: 36px 0 24px; text-align: center; }
 .hero h1 { font-size: 2.4rem; margin: 0 0 10px; letter-spacing: -0.02em; }
-.hero p { font-size: 1.15rem; color: var(--muted); max-width: 700px; margin: 0 auto 24px; }
+.hero p { font-size: 1.15rem; color: var(--muted); max-width: 700px; margin: 0 auto 18px; }
+.hero-badges { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+@media (max-width: 860px) { .info-grid { grid-template-columns: 1fr; } }
+.info-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-subtle);
+  padding: 20px 24px;
+}
+.info-card h2 { margin: 0 0 10px; font-size: 1.25rem; }
+.info-card p { margin: 0 0 12px; color: var(--muted); font-size: 0.95rem; }
+.info-card ul { margin: 0 0 16px; padding-left: 20px; font-size: 0.94rem; }
+.info-card li { margin-bottom: 6px; }
+.support-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
 .downloads {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -189,6 +209,8 @@ footer {
     </a>
     <div class="nav-links">
       <button class="btn" id="themeBtn" type="button">Toggle Dark / Light</button>
+      <a class="btn btn-sponsor" href="https://ko-fi.com/hue_md" target="_blank" rel="noopener">☕ Ko-fi</a>
+      <a class="btn btn-sponsor" href="https://patreon.com/hue_md" target="_blank" rel="noopener">💖 Patreon</a>
       <a class="btn" href="https://github.com/spingras/hue-md">GitHub (spingras/hue-md)</a>
       <a class="btn btn-primary" href="https://github.com/spingras/hue-md/releases/latest">Releases</a>
     </div>
@@ -200,11 +222,20 @@ footer {
     <h1>Color &amp; Callout Boxes for Markdown, Made Effortless</h1>
     <p>Type <code>+-- info</code>, <code>ok</code>, <code>note</code>, <code>warn</code>, or <code>!</code>. Readable as plain text, styled everywhere, and 100% compatible with CommonMark &amp; GitHub Alerts.</p>
 
+    <div class="hero-badges">
+      <a href="https://marketplace.visualstudio.com/items?itemName=spingras.hue-md"><img src="https://img.shields.io/badge/VS%20Code%20Marketplace-spingras.hue--md-007acc" alt="VS Code Marketplace"></a>
+      <a href="https://github.com/spingras/hue-md"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+      <a href="https://github.com/spingras/hue-md#built-for-real-world-reliability"><img src="https://img.shields.io/badge/CommonMark-652%2F652%20Pass-brightgreen" alt="CommonMark 652/652 Pass"></a>
+      <a href="#foss"><img src="https://img.shields.io/badge/FOSS-100%25%20Free%20%26%20Open-orange" alt="100% FOSS"></a>
+      <a href="https://ko-fi.com/hue_md"><img src="https://img.shields.io/badge/Ko--fi-hue__md-ff5f5f?logo=ko-fi&amp;logoColor=white" alt="Ko-fi"></a>
+      <a href="https://patreon.com/hue_md"><img src="https://img.shields.io/badge/Patreon-hue__md-f96854?logo=patreon&amp;logoColor=white" alt="Patreon"></a>
+    </div>
+
     <div class="downloads">
-      <a class="dl-card" href="https://github.com/spingras/hue-md/releases/latest/download/hue-md-0.1.0.vsix">
+      <a class="dl-card" href="https://marketplace.visualstudio.com/items?itemName=spingras.hue-md">
         <div>
-          <div class="dl-title"><span>VS Code / Cursor</span><span class="dl-file">hue-md-0.1.0.vsix</span></div>
-          <div class="dl-desc">Snippets (<code>info</code> + Tab), live preview, syntax coloring &amp; GitHub downgrade.</div>
+          <div class="dl-title"><span>VS Code Marketplace</span><span class="dl-file">spingras.hue-md</span></div>
+          <div class="dl-desc">1-click install from VS Code Marketplace — snippets (<code>info</code> + Tab), live preview (<code>Ctrl+Shift+V</code>) &amp; coloring.</div>
         </div>
       </a>
       <a class="dl-card" href="https://github.com/spingras/hue-md/releases/latest/download/hue-md-npp-x64.zip">
@@ -267,14 +298,37 @@ footer {
       <div class="preview-body" id="downgradePane" style="display:none"><pre class="downgrade-out" id="downgradeCode">${initialDowngrade.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</pre></div>
     </div>
   </section>
+
+  <section class="info-grid" id="foss">
+    <div class="info-card">
+      <h2>Built for Real-World Reliability</h2>
+      <p>Turn Hue MD on across all your Markdown files without ever worrying about broken prose or code:</p>
+      <ul>
+        <li><strong>Zero False Positives:</strong> JSON (<code>{"key": "value"}</code>), object literals (<code>{a: 1}</code>), math formulas, and code blocks are never touched. Verified across 250+ npm READMEs &amp; AI transcripts with 0 unintended changes.</li>
+        <li><strong>100% CommonMark Superset:</strong> All 652/652 CommonMark 0.31.2 spec examples render identically byte-for-byte.</li>
+        <li><strong>WCAG AA Contrast:</strong> All 7 palette colors meet strict 4.5:1+ contrast in both Light and Dark themes.</li>
+      </ul>
+    </div>
+
+    <div class="info-card">
+      <h2>Open Source Commitment (FOSS) &amp; Supporting Hue MD</h2>
+      <p>Hue MD is and will always remain <strong>100% Free and Open Source Software (MIT License)</strong> — zero telemetry, zero vendor lock-in, and pure plain text that you own forever.</p>
+      <p>This project is entirely self-funded and community-driven. If Hue MD saves you time or improves your documentation workflow, consider supporting independent development:</p>
+      <div class="support-btns">
+        <a class="btn btn-sponsor" href="https://ko-fi.com/hue_md" target="_blank" rel="noopener">☕ Ko-fi (ko-fi.com/hue_md)</a>
+        <a class="btn btn-sponsor" href="https://patreon.com/hue_md" target="_blank" rel="noopener">💖 Patreon (patreon.com/hue_md)</a>
+        <a class="btn" href="https://github.com/spingras/hue-md" target="_blank" rel="noopener">⭐ Star on GitHub</a>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer>
   <div class="container">
     Hue MD (<code>hue-md</code>) · 100% FOSS (MIT License) ·
     <a href="https://github.com/spingras/hue-md" style="color:inherit">GitHub</a> ·
-    <a href="https://ko-fi.com/hue-md" style="color:inherit">Ko-fi</a> ·
-    <a href="https://patreon.com/hue-md" style="color:inherit">Patreon</a>
+    <a href="https://ko-fi.com/hue_md" style="color:inherit">Ko-fi</a> ·
+    <a href="https://patreon.com/hue_md" style="color:inherit">Patreon</a>
   </div>
 </footer>
 
