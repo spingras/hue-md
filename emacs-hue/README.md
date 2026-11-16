@@ -32,7 +32,7 @@ Copy `hue-markdown-mode.el` into your Emacs config directory (`~/.emacs.d/lisp/h
 Add to your `~/.emacs.d/init.el`:
 
 ```elisp
-(add-to-list 'load-path "c:/Users/bartv/Documents/Coding Projects/modern-markdown/emacs-hue")
+(add-to-list 'load-path "~/path/to/hue-md/emacs-hue")
 (require 'hue-markdown-mode)
 (add-hook 'markdown-mode-hook #'hue-markdown-mode)
 ```
@@ -41,7 +41,7 @@ Or with `use-package`:
 
 ```elisp
 (use-package hue-markdown-mode
-  :load-path "c:/Users/bartv/Documents/Coding Projects/modern-markdown/emacs-hue"
+  :load-path "~/path/to/hue-md/emacs-hue"
   :mode "\\.hue\\.md\\'"
   :hook (markdown-mode . hue-markdown-mode))
 ```

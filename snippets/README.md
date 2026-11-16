@@ -27,13 +27,13 @@ Semantic callout tokens:
 ## Editor Support
 
 ### 1. VS Code / Cursor / Windsurf / VSCodium
-Built directly into the [Hue Markdown Extension](file:///c:/Users/bartv/Documents/Coding%20Projects/modern-markdown/vscode-hue).
+Built directly into the [Hue Markdown Extension](../vscode-hue/).
 - Snippets available out of the box (`info` + <kbd>Tab</kbd>, `warn` + <kbd>Tab</kbd>, `ok` + <kbd>Tab</kbd>, `note` + <kbd>Tab</kbd>).
 - Pressing <kbd>Enter</kbd> inside a box automatically continues the `| ` prefix on the next line.
 - Commands: `Hue: Insert Callout Box` and `Hue: Wrap Selection in Box`.
 
 ### 2. Notepad++
-Built directly into the [Hue Markdown Plugin](file:///c:/Users/bartv/Documents/Coding%20Projects/modern-markdown/notepadpp-hue).
+Built directly into the [Hue Markdown Plugin](../notepadpp-hue/).
 - Menu items under **Plugins > Hue Markdown**:
   - `Insert Info Box (+-- info)`
   - `Insert Warn Box (+-- warn)`

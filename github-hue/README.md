@@ -50,7 +50,7 @@ Whenever you commit a `.hue.md` file, its `.md` counterpart is automatically gen
 
 ## 3. GitHub Browser Extension & UserScript
 
-- **Tampermonkey / Violentmonkey**: Install `userscript/hue-github.user.js`.
+- **Tampermonkey / Violentmonkey**: Install `userscript/hue-md.user.js`.
 - **Chrome / Edge Extension**:
   1. Open `chrome://extensions` or `edge://extensions`.
   2. Enable "Developer mode".

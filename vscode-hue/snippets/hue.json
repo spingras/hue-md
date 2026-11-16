@@ -53,6 +53,15 @@
     ],
     "description": "Insert a customizable Hue box"
   },
+  "Hue Split Boxes (Side-by-Side)": {
+    "prefix": ["split", "columns", "hue-split"],
+    "body": [
+      "+-- ${1:ok} ${2:Left Title}          +-- ${3:warn} ${4:Right Title}",
+      "| ${5:Left content}                   | ${6:Right content}",
+      "+--                                 +--"
+    ],
+    "description": "Insert two side-by-side Hue boxes"
+  },
   "Hue Rounded Box": {
     "prefix": ["rbox", "hue-round"],
     "body": [
@@ -68,5 +77,33 @@
       "{${1|info,ok,warn,note,danger,red,orange,yellow,green,blue,purple,gray|}: ${2:text}}"
     ],
     "description": "Insert a Hue colored text span"
+  },
+  "Hue Diff Span": {
+    "prefix": ["diff", "hue-diff"],
+    "body": [
+      "{${1|+,-|}: ${2:changed text}}"
+    ],
+    "description": "Insert an inline addition ({+:}) or deletion ({-:}) diff span"
+  },
+  "Hue Key Cap": {
+    "prefix": ["kbd", "key", "hue-kbd"],
+    "body": [
+      "[[${1:Ctrl+Shift+P}]]"
+    ],
+    "description": "Insert a keyboard shortcut key cap"
+  },
+  "Hue Progress Bar": {
+    "prefix": ["progress", "bar", "hue-progress"],
+    "body": [
+      "[${1:========..}] ${2:80}%"
+    ],
+    "description": "Insert a Hue progress bar"
+  },
+  "Hue Multi-State Task": {
+    "prefix": ["task", "hue-task"],
+    "body": [
+      "- [${1| ,-,!,?,x|}] ${2:Task description}"
+    ],
+    "description": "Insert a Hue multi-state task item"
   }
 }

@@ -1,0 +1,31 @@
+{
+  "name": "hue-md",
+  "displayName": "Hue MD",
+  "version": "0.3.0",
+  "description": "Write Hue Markdown (.hue.md): colored spans, diff spans, keycaps, progress bars, multi-state tasks, and callout boxes (single or side-by-side) that stay readable as raw text. Preview in a pane or terminal slides and convert to GitHub Markdown.",
+  "author": {
+    "name": "spingras",
+    "url": "https://github.com/spingras"
+  },
+  "homepage": "https://spingras.github.io/hue-md/",
+  "repository": "https://github.com/spingras/hue-md",
+  "license": "MIT",
+  "keywords": [
+    "markdown",
+    "hue-md",
+    "callouts",
+    "color",
+    "tasks",
+    "slides",
+    "documentation"
+  ],
+  "userConfig": {
+    "auto_downgrade": {
+      "type": "boolean",
+      "title": "Write a GitHub copy after each edit",
+      "description": "After Claude writes or edits a .hue.md file, also write the GitHub Markdown version next to it (notes.hue.md -> notes.md). Never overwrites a .md file that hue-md did not generate.",
+      "default": false
+    }
+  },
+  "types": "./types/index.d.ts"
+}

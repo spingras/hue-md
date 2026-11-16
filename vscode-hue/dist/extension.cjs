@@ -5,11 +5,7 @@ var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __commonJS = (cb, mod) => function __require() {
-  try {
-    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
-  } catch (e) {
-    throw mod = 0, e;
-  }
+  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
 var __export = (target, all) => {
   for (var name in all)
@@ -5851,6 +5847,208 @@ function stripSide(text3) {
   t = t.replace(/\s*[│|]\s*$/, "");
   return t.replace(/\s+$/, "");
 }
+function findBoxColumnStarts(line) {
+  const starts = [0];
+  const re = /\s{2,}(?=[┌╭+][─\-])/g;
+  let m;
+  while ((m = re.exec(line)) !== null) {
+    starts.push(m.index + m[0].length);
+  }
+  return starts;
+}
+function parseSplitBoxes(lines) {
+  if (!lines.length) return null;
+  const first = lines[0];
+  const starts = findBoxColumnStarts(first);
+  if (starts.length < 2) return null;
+  const cols = [];
+  for (let k = 0; k < starts.length; k++) {
+    const seg = first.slice(starts[k], starts[k + 1]).trimEnd();
+    const top = parseTop(seg);
+    if (!top) return null;
+    cols.push({ top, inner: [], closed: false });
+  }
+  let endIdx = -1;
+  for (let i = 1; i < lines.length; i++) {
+    const text3 = lines[i];
+    for (let k = 0; k < starts.length; k++) {
+      const seg = (k < starts.length - 1 ? text3.slice(starts[k], starts[k + 1]) : text3.slice(starts[k])).trimEnd();
+      if (cols[k].closed) {
+        if (seg.trim() !== "") return null;
+      } else if (BOX_BOTTOM.test(seg)) {
+        cols[k].closed = true;
+      } else if (BOX_SIDE.test(seg)) {
+        cols[k].inner.push(stripSide(seg));
+      } else {
+        return null;
+      }
+    }
+    if (cols.every((c) => c.closed)) {
+      endIdx = i;
+      break;
+    }
+  }
+  if (endIdx === -1) return null;
+  return { cols, lineCount: endIdx + 1 };
+}
+var TASK_STATES = {
+  " ": { name: "todo", color: "gray", label: "Todo", icon: "\u2610", htmlSymbol: "&#9744;" },
+  "-": { name: "progress", color: "blue", label: "In progress", icon: "\u25D0", htmlSymbol: "&#9680;" },
+  "!": { name: "blocked", color: "red", label: "Blocked", icon: "!", htmlSymbol: "!" },
+  "?": { name: "question", color: "purple", label: "Question", icon: "?", htmlSymbol: "?" },
+  x: { name: "done", color: "green", label: "Done", icon: "\u2714", htmlSymbol: "&#10003;" },
+  X: { name: "done", color: "green", label: "Done", icon: "\u2714", htmlSymbol: "&#10003;" }
+};
+var KEY_NAMES = /* @__PURE__ */ new Set([
+  "ctrl",
+  "control",
+  "shift",
+  "alt",
+  "option",
+  "opt",
+  "cmd",
+  "command",
+  "super",
+  "meta",
+  "win",
+  "fn",
+  "enter",
+  "return",
+  "esc",
+  "escape",
+  "tab",
+  "space",
+  "spacebar",
+  "backspace",
+  "bksp",
+  "delete",
+  "del",
+  "insert",
+  "ins",
+  "up",
+  "down",
+  "left",
+  "right",
+  "home",
+  "end",
+  "pgup",
+  "pageup",
+  "pgdn",
+  "pagedown",
+  "capslock",
+  "caps",
+  "numlock",
+  "scrolllock",
+  "prtsc",
+  "printscreen",
+  "pause",
+  "break",
+  "menu",
+  "clear",
+  "f1",
+  "f2",
+  "f3",
+  "f4",
+  "f5",
+  "f6",
+  "f7",
+  "f8",
+  "f9",
+  "f10",
+  "f11",
+  "f12",
+  "f13",
+  "f14",
+  "f15",
+  "f16",
+  "f17",
+  "f18",
+  "f19",
+  "f20",
+  "f21",
+  "f22",
+  "f23",
+  "f24",
+  "plus",
+  "minus",
+  "slash",
+  "backslash",
+  "comma",
+  "period",
+  "dot",
+  "semicolon",
+  "quote",
+  "backtick",
+  "tilde"
+]);
+var KEY_SYMBOLS = /* @__PURE__ */ new Set(["\u2318", "\u2325", "\u21E7", "\u2303", "\u23CE", "\u232B", "\u21E5", "\u238B", "\u2191", "\u2193", "\u2190", "\u2192", "/", "?", "+", "-", "=", "~", "`", "[", "]", "\\", ";", "'", ",", ".", "*", "<", ">"]);
+function isValidKeycap(raw) {
+  if (!raw || raw.length > 32 || /[\n\r\t]/.test(raw)) return false;
+  if (raw !== raw.trim()) return false;
+  if (!raw.includes("+") || raw === "+") {
+    if (KEY_NAMES.has(raw.toLowerCase())) return true;
+    if (KEY_SYMBOLS.has(raw)) return true;
+    if (/^[A-Z]$/.test(raw)) return true;
+    return false;
+  }
+  const parts = [];
+  let cur = "";
+  for (let i = 0; i < raw.length; i++) {
+    if (raw[i] === "+") {
+      if (cur === "" && i > 0 && raw[i - 1] === "+") {
+        cur = "+";
+      } else if (cur !== "") {
+        parts.push(cur);
+        cur = "";
+      } else {
+        return false;
+      }
+    } else {
+      cur += raw[i];
+    }
+  }
+  if (cur !== "") parts.push(cur);
+  if (parts.length < 2) return false;
+  for (const p of parts) {
+    if (KEY_NAMES.has(p.toLowerCase())) continue;
+    if (KEY_SYMBOLS.has(p)) continue;
+    if (/^[A-Za-z0-9]$/.test(p)) continue;
+    return false;
+  }
+  return true;
+}
+var PROGRESS_RE = /^\[([=#■█]{0,40})([.\-_░ ]{0,40})\]\s*(\d{1,3})%/;
+function progressColor(pct) {
+  if (pct >= 100) return "green";
+  if (pct >= 50) return "blue";
+  if (pct >= 25) return "orange";
+  return "red";
+}
+function matchProgressBar(src, pos, posMax) {
+  if (src.charCodeAt(pos) !== 91) return null;
+  if (pos > 0 && src.charCodeAt(pos - 1) === 91) return null;
+  const slice = src.slice(pos, Math.min(posMax, pos + 52));
+  const m = PROGRESS_RE.exec(slice);
+  if (!m) return null;
+  const filled = m[1];
+  const empty = m[2];
+  const totalLen = filled.length + empty.length;
+  if (totalLen < 4 || totalLen > 40) return null;
+  if (filled.length === 0 && !/[.\-_░]/.test(empty)) return null;
+  const pct = Number(m[3]);
+  if (pct < 0 || pct > 100) return null;
+  const endPos = pos + m[0].length;
+  if (endPos < posMax && (src.charCodeAt(endPos) === 40 || src.charCodeAt(endPos) === 91)) return null;
+  return {
+    raw: m[0],
+    filled: filled.length,
+    empty: empty.length,
+    total: totalLen,
+    pct,
+    color: progressColor(pct),
+    endPos
+  };
+}
 
 // ../src/index.js
 var HTML_TAG_AT = new RegExp(HTML_TAG_RE.source.replace(/^\^/, ""), "y");
@@ -5955,15 +6153,19 @@ function spanHead(src, pos, posMax) {
 }
 var inlineMdTrue = null;
 var inlineMdFalse = null;
-function findSpans(src, { html = true } = {}) {
-  if (!src.includes("{")) return [];
+function findInlineHue(src, { html = true } = {}) {
+  if (!src.includes("{") && !src.includes("[[")) return { spans: [], diffs: [], kbds: [] };
   const m = html ? inlineMdTrue ||= new lib_default({ html: true }).use(hue) : inlineMdFalse ||= new lib_default({ html: false }).use(hue);
   const tokens = m.parseInline(src, {});
   const spans = [];
+  const diffs = [];
+  const kbds = [];
   for (const ch of tokens[0]?.children || []) {
     if (ch.type === "hue_open" && ch.meta?.span) spans.push(ch.meta.span);
+    else if (ch.type === "hue_diff_open" && ch.meta?.diff) diffs.push(ch.meta.diff);
+    else if (ch.type === "hue_kbd" && ch.meta?.kbd) kbds.push(ch.meta.kbd);
   }
-  return spans;
+  return { spans, diffs, kbds };
 }
 function hueInline(opts) {
   return function hue_span(state, silent) {
@@ -5990,14 +6192,234 @@ function hueInline(opts) {
     return true;
   };
 }
+function diffHead(src, pos, posMax) {
+  if (src.charCodeAt(pos) !== 123) return null;
+  const limit = Math.min(posMax, pos + 10);
+  let colon = pos + 1;
+  while (colon < limit && src.charCodeAt(colon) !== 58) colon++;
+  if (colon >= limit) return null;
+  const specText = src.slice(pos + 1, colon);
+  if (/[\n{}]/.test(specText)) return null;
+  const trimmed = specText.trim();
+  if (trimmed !== "+" && trimmed !== "-") return null;
+  let contentStart = colon + 1;
+  while (contentStart < posMax && src.charCodeAt(contentStart) === 32) contentStart++;
+  return { kind: trimmed === "+" ? "add" : "del", specText, contentStart };
+}
+function hueDiffRule(opts) {
+  return function hue_diff(state, silent) {
+    const { src, pos, posMax } = state;
+    const head = diffHead(src, pos, posMax);
+    if (!head) return false;
+    const { kind, specText, contentStart } = head;
+    const close = closeOf(state, pos);
+    if (close === -1 || close >= posMax || close <= contentStart) return false;
+    if (!silent) {
+      const tag = kind === "add" ? "ins" : "del";
+      const open = state.push("hue_diff_open", tag, 1);
+      open.attrs = [["class", `hue hue-diff-${kind}`]];
+      if (opts.inlineStyles) {
+        const c = kind === "add" ? COLORS.green.light : COLORS.red.light;
+        const dec = kind === "add" ? "none" : "line-through";
+        open.attrs.push(["style", `color:${c.fg};background:${c.bg};text-decoration:${dec};padding:0 0.2em;border-radius:3px`]);
+      }
+      open.markup = `{${specText}:`;
+      open.meta = { kind, diff: { open: pos, contentStart, close, kind } };
+      const oldMax = state.posMax;
+      state.pos = contentStart;
+      state.posMax = close;
+      state.md.inline.tokenize(state);
+      state.posMax = oldMax;
+      const shut = state.push("hue_diff_close", tag, -1);
+      shut.markup = "}";
+    }
+    state.pos = close + 1;
+    return true;
+  };
+}
+function hueKeycapRule(opts) {
+  return function hue_kbd(state, silent) {
+    if (silent) return false;
+    const { src, pos, posMax } = state;
+    if (pos + 4 >= posMax) return false;
+    if (src.charCodeAt(pos) !== 91 || src.charCodeAt(pos + 1) !== 91) return false;
+    if (pos > 0) {
+      const prev = src.charCodeAt(pos - 1);
+      if (prev === 91 || prev === 93 || prev >= 48 && prev <= 57 || prev >= 65 && prev <= 90 || prev >= 97 && prev <= 122) {
+        return false;
+      }
+    }
+    const limit = Math.min(posMax - 1, pos + 2 + 32);
+    let close = pos + 2;
+    while (close < limit && !(src.charCodeAt(close) === 93 && src.charCodeAt(close + 1) === 93)) {
+      if (src.charCodeAt(close) === 10 || src.charCodeAt(close) === 91) return false;
+      close++;
+    }
+    if (close >= limit || src.charCodeAt(close) !== 93 || src.charCodeAt(close + 1) !== 93) return false;
+    if (close + 2 < posMax && (src.charCodeAt(close + 2) === 93 || src.charCodeAt(close + 2) === 40)) return false;
+    const keyText = src.slice(pos + 2, close);
+    if (!isValidKeycap(keyText)) return false;
+    const tok = state.push("hue_kbd", "kbd", 0);
+    tok.attrs = [["class", "hue-kbd"]];
+    if (opts.inlineStyles) {
+      tok.attrs.push(["style", "display:inline-block;padding:0.1em 0.4em;font-size:0.85em;font-family:monospace;border:1px solid #98a2b3;border-bottom-width:2px;border-radius:4px;background:#f2f4f7;color:#1d2939"]);
+    }
+    tok.content = keyText;
+    tok.markup = `[[${keyText}]]`;
+    tok.meta = { kbd: { open: pos, close: close + 2, keyText } };
+    state.pos = close + 2;
+    return true;
+  };
+}
+function hueProgressRule(opts) {
+  return function hue_progress(state, silent) {
+    if (silent) return false;
+    const { src, pos, posMax } = state;
+    const hit = matchProgressBar(src, pos, posMax);
+    if (!hit) return false;
+    const tok = state.push("hue_progress", "span", 0);
+    tok.meta = hit;
+    tok.content = `${hit.pct}%`;
+    tok.markup = hit.raw;
+    tok.attrs = [
+      ["class", `hue-progress hue-progress-${hit.color}`],
+      ["role", "progressbar"],
+      ["aria-valuenow", String(hit.pct)],
+      ["aria-valuemin", "0"],
+      ["aria-valuemax", "100"]
+    ];
+    if (opts.inlineStyles) {
+      tok.attrs.push(["style", "display:inline-flex;align-items:center;gap:0.4em;vertical-align:middle"]);
+    }
+    state.pos = hit.endPos;
+    return true;
+  };
+}
+var TASK_RE = /^\[([ xX\-!?])\](\s+)/;
+function hueTaskRule(opts) {
+  return function hue_tasks(state) {
+    const tokens = state.tokens;
+    for (let i = 2; i < tokens.length; i++) {
+      if (tokens[i].type !== "inline") continue;
+      if (tokens[i - 1].type !== "paragraph_open") continue;
+      if (tokens[i - 2].type !== "list_item_open") continue;
+      const children = tokens[i].children;
+      if (!children || !children.length || children[0].type !== "text") continue;
+      const m = TASK_RE.exec(children[0].content);
+      if (!m) continue;
+      const marker = m[1];
+      const info = TASK_STATES[marker];
+      if (!info) continue;
+      children[0].content = children[0].content.slice(m[0].length);
+      const boxToken = new state.Token("hue_task_box", "span", 0);
+      boxToken.attrs = [
+        ["class", `hue-task-box hue-task-box-${info.name}`],
+        ["aria-hidden", "true"]
+      ];
+      if (opts.inlineStyles) {
+        const p = COLORS[info.color].light;
+        boxToken.attrs.push(["style", `color:${p.fg};background:${p.bg};border:1px solid ${p.fg};border-radius:3px;padding:0 0.25em;margin-right:0.4em;font-weight:600`]);
+      }
+      boxToken.meta = { marker: marker.toLowerCase(), state: info.name, color: info.color, icon: info.icon, htmlSymbol: info.htmlSymbol };
+      children.unshift(boxToken);
+      const li = tokens[i - 2];
+      const liClass = li.attrGet("class");
+      li.attrSet("class", (liClass ? liClass + " " : "") + `hue-task hue-task-${info.name}`);
+      li.meta = { ...li.meta || {}, task: boxToken.meta };
+      for (let j = i - 3; j >= 0; j--) {
+        if (tokens[j].type === "bullet_list_open" || tokens[j].type === "ordered_list_open") {
+          const ulClass = tokens[j].attrGet("class") || "";
+          if (!ulClass.split(/\s+/).includes("hue-task-list")) {
+            tokens[j].attrSet("class", (ulClass ? ulClass + " " : "") + "hue-task-list");
+          }
+          break;
+        }
+      }
+    }
+  };
+}
 function lineText(state, line) {
   return state.src.slice(state.bMarks[line] + state.tShift[line], state.eMarks[line]);
+}
+function rawLineWithIndent(state, line, baseIndent) {
+  const start = Math.min(state.eMarks[line], state.bMarks[line] + baseIndent);
+  return state.src.slice(start, state.eMarks[line]);
 }
 function styleAttrs(style, opts, kind) {
   const { className, style: css2 } = styleClasses(style, kind, opts);
   const attrs = [["class", className.join(" ")]];
   if (css2) attrs.push(["style", css2]);
   return attrs;
+}
+function hueSplitBox(opts) {
+  return function hue_split_box(state, startLine, endLine, silent) {
+    if (state.sCount[startLine] - state.blkIndent >= 4) return false;
+    const baseIndent = state.tShift[startLine];
+    const first = lineText(state, startLine);
+    const starts = findBoxColumnStarts(first);
+    if (starts.length < 2) return false;
+    const cols = [];
+    for (let k = 0; k < starts.length; k++) {
+      const seg = first.slice(starts[k], starts[k + 1]).trimEnd();
+      const top = parseTop(seg);
+      if (!top) return false;
+      cols.push({ top, inner: [], closed: false });
+    }
+    let endIdx = -1;
+    for (let line = startLine + 1; line < endLine; line++) {
+      const text3 = rawLineWithIndent(state, line, baseIndent);
+      for (let k = 0; k < starts.length; k++) {
+        const seg = (k < starts.length - 1 ? text3.slice(starts[k], starts[k + 1]) : text3.slice(starts[k])).trimEnd();
+        if (cols[k].closed) {
+          if (seg.trim() !== "") return false;
+        } else if (BOX_BOTTOM.test(seg)) {
+          cols[k].closed = true;
+        } else if (BOX_SIDE.test(seg)) {
+          cols[k].inner.push(stripSide(seg));
+        } else {
+          return false;
+        }
+      }
+      if (cols.every((c) => c.closed)) {
+        endIdx = line;
+        break;
+      }
+    }
+    if (endIdx === -1) return false;
+    if (silent) return true;
+    const lineCount = endIdx - startLine + 1;
+    const wrapOpen = state.push("hue_columns_open", "div", 1);
+    wrapOpen.attrs = [["class", `hue-columns hue-columns-${cols.length}`]];
+    if (opts.inlineStyles) {
+      wrapOpen.attrs.push(["style", "display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1em;margin:1em 0"]);
+    }
+    wrapOpen.block = true;
+    wrapOpen.map = [startLine, startLine + lineCount];
+    wrapOpen.meta = { columns: cols.length };
+    for (const col of cols) {
+      const { style, title, corners } = col.top;
+      const open = state.push("hue_box_open", "div", 1);
+      open.attrs = styleAttrs(style, opts, "box");
+      open.attrs.push(["role", "note"]);
+      open.block = true;
+      open.map = [startLine, startLine + lineCount];
+      open.meta = { style, title, corners };
+      if (title) {
+        const t = state.push("hue_box_title_open", "div", 1);
+        t.attrs = [["class", "hue-box-title"]];
+        const il = state.push("inline", "", 0);
+        il.content = title;
+        il.map = [startLine, startLine + 1];
+        il.children = [];
+        state.push("hue_box_title_close", "div", -1);
+      }
+      state.md.block.parse(col.inner.join("\n"), state.md, state.env, state.tokens);
+      state.push("hue_box_close", "div", -1).block = true;
+    }
+    state.push("hue_columns_close", "div", -1).block = true;
+    state.line = startLine + lineCount;
+    return true;
+  };
 }
 function hueBox(opts) {
   return function hue_box(state, startLine, endLine, silent) {
@@ -6075,14 +6497,58 @@ ${prefix}.hue-box > :first-child { margin-top: 0; }
 ${prefix}.hue-box > :last-child { margin-bottom: 0; }
 ${prefix}.hue-box-title { font-weight: 600; margin-bottom: .35em; }
 ${rules}
+${prefix}.hue-task-list { list-style: none; padding-left: 0.4em; }
+${prefix}.hue-task { display: flex; align-items: baseline; gap: 0.45em; margin: 0.25em 0; }
+${prefix}.hue-task-box { display: inline-flex; align-items: center; justify-content: center; width: 1.25em; height: 1.25em; border-radius: 4px; font-size: 0.85em; font-weight: 700; flex-shrink: 0; border: 1.5px solid var(--hue-gray); color: var(--hue-gray); background: var(--hue-gray-bg); }
+${prefix}.hue-task-box-progress { border-color: var(--hue-blue); color: var(--hue-blue); background: var(--hue-blue-bg); }
+${prefix}.hue-task-box-blocked { border-color: var(--hue-red); color: var(--hue-red); background: var(--hue-red-bg); }
+${prefix}.hue-task-box-question { border-color: var(--hue-purple); color: var(--hue-purple); background: var(--hue-purple-bg); }
+${prefix}.hue-task-box-done { border-color: var(--hue-green); color: var(--hue-green); background: var(--hue-green-bg); }
+${prefix}.hue-columns { display: -ms-flexbox; display: flex; -ms-flex-wrap: nowrap; flex-wrap: nowrap; margin: 1em 0; align-items: stretch; }
+${prefix}.hue-columns > .hue-box { -ms-flex: 1 1 0px; flex: 1 1 0px; margin: 0; box-sizing: border-box; }
+${prefix}.hue-columns > .hue-box + .hue-box { margin-left: 16px; }
+${prefix}.hue-kbd { display: inline-block; padding: 0.1em 0.42em; font-size: 0.84em; line-height: 1.2; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--hue-text); background: var(--hue-neutral-bg); border: 1px solid var(--hue-gray); border-bottom-width: 2px; border-radius: 4px; }
+${prefix}.hue-progress { display: inline-flex; align-items: center; gap: 0.45em; vertical-align: middle; font-variant-numeric: tabular-nums; }
+${prefix}.hue-progress-track { display: inline-block; width: 5.5em; height: 0.55em; background: var(--hue-neutral-bg); border-radius: 999px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--hue-gray) 35%, transparent); }
+${prefix}.hue-progress-fill { display: block; height: 100%; border-radius: 999px; background: var(--hue-blue); }
+${prefix}.hue-progress-green .hue-progress-fill { background: var(--hue-green); }
+${prefix}.hue-progress-blue .hue-progress-fill { background: var(--hue-blue); }
+${prefix}.hue-progress-orange .hue-progress-fill { background: var(--hue-orange); }
+${prefix}.hue-progress-red .hue-progress-fill { background: var(--hue-red); }
+${prefix}.hue-progress-label { font-size: 0.85em; font-weight: 600; color: var(--hue-text); }
+${prefix}ins.hue-diff-add { color: var(--hue-green); background: var(--hue-green-bg); text-decoration: none; padding: 0 0.22em; border-radius: 3px; }
+${prefix}del.hue-diff-del { color: var(--hue-red); background: var(--hue-red-bg); text-decoration: line-through; padding: 0 0.22em; border-radius: 3px; }
 `;
 }
 function hue(md2, options = {}) {
   const opts = { inlineStyles: false, fence: true, ...options };
+  md2.inline.ruler.before("emphasis", "hue_diff", hueDiffRule(opts));
   md2.inline.ruler.before("emphasis", "hue_span", hueInline(opts));
+  md2.inline.ruler.before("link", "hue_progress", hueProgressRule(opts));
+  md2.inline.ruler.before("link", "hue_kbd", hueKeycapRule(opts));
+  md2.block.ruler.before("fence", "hue_split_box", hueSplitBox(opts), {
+    alt: ["paragraph", "reference", "blockquote", "list"]
+  });
   md2.block.ruler.before("fence", "hue_box", hueBox(opts), {
     alt: ["paragraph", "reference", "blockquote", "list"]
   });
+  md2.core.ruler.after("inline", "hue_tasks", hueTaskRule(opts));
+  md2.renderer.rules.hue_task_box = (tokens, idx, o, env, self) => {
+    const t = tokens[idx];
+    return `<span${self.renderAttrs(t)}>${t.meta.htmlSymbol}</span> `;
+  };
+  md2.renderer.rules.hue_kbd = (tokens, idx, o, env, self) => {
+    const t = tokens[idx];
+    return `<kbd${self.renderAttrs(t)}>${md2.utils.escapeHtml(t.content)}</kbd>`;
+  };
+  md2.renderer.rules.hue_progress = (tokens, idx, o, env, self) => {
+    const t = tokens[idx];
+    const { pct, color } = t.meta;
+    const fillStyle = opts.inlineStyles ? `display:block;height:100%;width:${pct}%;background:${COLORS[color].light.fg}` : `width:${pct}%`;
+    const trackStyle = opts.inlineStyles ? "display:inline-block;width:5.5em;height:0.55em;background:#f2f4f7;border-radius:999px;overflow:hidden" : "";
+    const trackAttr = trackStyle ? ` style="${trackStyle}"` : "";
+    return `<span${self.renderAttrs(t)}><span class="hue-progress-track"${trackAttr}><span class="hue-progress-fill" style="${fillStyle}"></span></span><span class="hue-progress-label">${pct}%</span></span>`;
+  };
   if (opts.fence) {
     const fallback = md2.renderer.rules.fence || ((tokens, idx, o, env, self) => self.renderToken(tokens, idx, o));
     md2.renderer.rules.fence = (tokens, idx, o, env, self) => {
@@ -11505,16 +11971,27 @@ function spanMarkers(style, content, mode) {
   const bold = mode === "bold" || (mode === "auto" || mode === "latex") && STRONG.has(style.fg);
   return bold ? ["**", "**"] : ["", ""];
 }
-function downgradeSpans(text3, { spans = "auto" } = {}) {
-  const found = findSpans(text3);
-  if (!found.length) return text3;
+function downgradeSpans(text3, { spans = "auto", kbd = "html" } = {}) {
+  const { spans: foundSpans, diffs, kbds } = findInlineHue(text3);
+  if (!foundSpans.length && !diffs.length && !kbds.length) return text3;
   const edits = [];
-  for (const s of found) {
+  for (const s of foundSpans) {
     let end = s.close;
     while (end > s.contentStart && /\s/.test(text3[end - 1])) end--;
     const [pre, post] = spanMarkers(s.style, text3.slice(s.contentStart, end), spans);
     edits.push({ from: s.open, to: s.contentStart, text: pre });
     edits.push({ from: end, to: s.close + 1, text: post + text3.slice(end, s.close) });
+  }
+  for (const d of diffs) {
+    let end = d.close;
+    while (end > d.contentStart && /\s/.test(text3[end - 1])) end--;
+    const [pre, post] = d.kind === "add" ? spans === "plain" ? ["+", ""] : ["**+", "**"] : ["~~", "~~"];
+    edits.push({ from: d.open, to: d.contentStart, text: pre });
+    edits.push({ from: end, to: d.close + 1, text: post + text3.slice(end, d.close) });
+  }
+  for (const k of kbds) {
+    const replacement = kbd === "code" ? `\`${k.keyText}\`` : `<kbd>${k.keyText}</kbd>`;
+    edits.push({ from: k.open, to: k.close, text: replacement });
   }
   edits.sort((a, b) => b.from - a.from);
   let out = text3;
@@ -11526,13 +12003,8 @@ function linePrefix(line) {
   const m = /^[^┌╭+│|└╰]*/.exec(line);
   return m ? m[0] : "";
 }
-function boxToAlert(lines, opts) {
-  const prefix = linePrefix(lines[0]);
-  const parsed = parseTop(lines[0].slice(prefix.length).trimStart());
-  const style = parsed?.style || { fg: null, bg: null };
-  const title = parsed?.title || "";
-  const interior = lines.slice(1, -1).map((l) => stripSide(l.slice(Math.min(prefix.length, linePrefix(l).length)).trimStart()));
-  const downgradedInterior = downgrade(interior.join("\n"), opts).replace(/\n$/, "");
+function renderAlertLines(style, title, interiorLines, prefix, opts) {
+  const downgradedInterior = downgrade(interiorLines.join("\n"), opts).replace(/\n$/, "");
   const body = downgradedInterior.split("\n");
   for (const t of md.parse(downgradedInterior, {})) {
     if (t.type === "paragraph_open" && t.map) {
@@ -11550,6 +12022,37 @@ function boxToAlert(lines, opts) {
   for (const l of body) out.push(l ? "> " + l : ">");
   return out.map((l) => prefix + l);
 }
+function boxToAlert(lines, opts) {
+  const prefix = linePrefix(lines[0]);
+  const parsed = parseTop(lines[0].slice(prefix.length).trimStart());
+  const style = parsed?.style || { fg: null, bg: null };
+  const title = parsed?.title || "";
+  const interior = lines.slice(1, -1).map((l) => stripSide(l.slice(Math.min(prefix.length, linePrefix(l).length)).trimStart()));
+  return renderAlertLines(style, title, interior, prefix, opts);
+}
+function splitBoxesToAlerts(lines, opts) {
+  const prefix = linePrefix(lines[0]);
+  const sliceLines = lines.map((l) => l.slice(Math.min(prefix.length, l.length)));
+  const split = parseSplitBoxes(sliceLines);
+  if (!split) return lines;
+  const out = [];
+  split.cols.forEach((col, idx) => {
+    if (idx > 0) out.push(prefix.trimEnd());
+    out.push(...renderAlertLines(col.top.style, col.top.title, col.inner, prefix, opts));
+  });
+  return out;
+}
+function rewriteTaskLine(line) {
+  const m = /^(\s*(?:>\s*)*(?:[-*+]|\d+\.)\s+)\[([ xX\-!?])\](\s+)(.*)$/.exec(line);
+  if (!m) return line;
+  const [, listPrefix, state, space, rest] = m;
+  if (state === "x" || state === "X") return `${listPrefix}[x]${space}${rest}`;
+  if (state === " ") return `${listPrefix}[ ]${space}${rest}`;
+  if (state === "-") return `${listPrefix}[ ] *(in progress)* ${rest}`;
+  if (state === "!") return `${listPrefix}[ ] **[!]** ${rest}`;
+  if (state === "?") return `${listPrefix}[ ] **[?]** ${rest}`;
+  return line;
+}
 function downgrade(src, opts = {}) {
   const lines = src.split("\n");
   const tokens = md.parse(src, {});
@@ -11558,7 +12061,14 @@ function downgrade(src, opts = {}) {
   const inlineLines = /* @__PURE__ */ new Set();
   let boxDepth = 0;
   for (const t of tokens) {
-    if (t.type === "hue_box_open") {
+    if (t.type === "hue_columns_open") {
+      if (boxDepth++ === 0 && t.map) {
+        const [s, e] = t.map;
+        replace3.set(s, { end: e, lines: splitBoxesToAlerts(lines.slice(s, e), opts) });
+      }
+    } else if (t.type === "hue_columns_close") {
+      boxDepth--;
+    } else if (t.type === "hue_box_open") {
       if (boxDepth++ === 0 && t.map) {
         const [s, e] = t.map;
         replace3.set(s, { end: e, lines: boxToAlert(lines.slice(s, e), opts) });
@@ -11580,8 +12090,11 @@ function downgrade(src, opts = {}) {
   const out = [];
   let chunk = [];
   const flush = () => {
-    if (chunk.length) out.push(...downgradeSpans(chunk.join("\n"), opts).split("\n"));
-    chunk = [];
+    if (chunk.length) {
+      const taskRewritten = chunk.map(rewriteTaskLine);
+      out.push(...downgradeSpans(taskRewritten.join("\n"), opts).split("\n"));
+      chunk = [];
+    }
   };
   for (let i = 0; i < lines.length; i++) {
     const r = replace3.get(i);

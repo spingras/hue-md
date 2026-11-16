@@ -1,10 +1,12 @@
 // Downgrades Hue Markdown to GitHub Flavored Markdown that renders well
-// without Hue: spans lose their braces, boxes become GitHub alerts.
+// without Hue: spans lose their braces, diff spans become bold/strikethrough,
+// keycaps become <kbd>, multi-state tasks become GFM checkboxes with labels,
+// and boxes (including side-by-side split boxes) become GitHub alerts.
 //
 // It rewrites the source text instead of re-serializing a syntax tree, so
 // everything that is not Hue stays byte-for-byte as the author wrote it.
 import MarkdownIt from 'markdown-it'
-import hue, { findSpans, parseTop, stripSide } from '../../src/index.js'
+import hue, { findInlineHue, parseTop, stripSide, parseSplitBoxes } from '../../src/index.js'
 
 // GitHub alert type for each palette color. Gray and unstyled boxes become plain quotes.
 export const ALERTS = {
@@ -29,12 +31,13 @@ function spanMarkers (style, content, mode) {
   return bold ? ['**', '**'] : ['', '']
 }
 
-// Rewrite every span in a piece of inline text.
-export function downgradeSpans (text, { spans = 'auto' } = {}) {
-  const found = findSpans(text)
-  if (!found.length) return text
+// Rewrite every inline Hue construct (color spans, diff spans, keycaps) in a piece of inline text.
+export function downgradeSpans (text, { spans = 'auto', kbd = 'html' } = {}) {
+  const { spans: foundSpans, diffs, kbds } = findInlineHue(text)
+  if (!foundSpans.length && !diffs.length && !kbds.length) return text
   const edits = []
-  for (const s of found) {
+
+  for (const s of foundSpans) {
     // keep surrounding spaces outside the markers, so **bold** stays valid emphasis
     let end = s.close
     while (end > s.contentStart && /\s/.test(text[end - 1])) end--
@@ -42,6 +45,22 @@ export function downgradeSpans (text, { spans = 'auto' } = {}) {
     edits.push({ from: s.open, to: s.contentStart, text: pre })
     edits.push({ from: end, to: s.close + 1, text: post + text.slice(end, s.close) })
   }
+
+  for (const d of diffs) {
+    let end = d.close
+    while (end > d.contentStart && /\s/.test(text[end - 1])) end--
+    const [pre, post] = d.kind === 'add'
+      ? (spans === 'plain' ? ['+', ''] : ['**+', '**'])
+      : ['~~', '~~']
+    edits.push({ from: d.open, to: d.contentStart, text: pre })
+    edits.push({ from: end, to: d.close + 1, text: post + text.slice(end, d.close) })
+  }
+
+  for (const k of kbds) {
+    const replacement = kbd === 'code' ? `\`${k.keyText}\`` : `<kbd>${k.keyText}</kbd>`
+    edits.push({ from: k.open, to: k.close, text: replacement })
+  }
+
   edits.sort((a, b) => b.from - a.from)
   let out = text
   for (const e of edits) out = out.slice(0, e.from) + e.text + out.slice(e.to)
@@ -56,13 +75,8 @@ function linePrefix (line) {
   return m ? m[0] : ''
 }
 
-function boxToAlert (lines, opts) {
-  const prefix = linePrefix(lines[0])
-  const parsed = parseTop(lines[0].slice(prefix.length).trimStart())
-  const style = parsed?.style || { fg: null, bg: null }
-  const title = parsed?.title || ''
-  const interior = lines.slice(1, -1).map((l) => stripSide(l.slice(Math.min(prefix.length, linePrefix(l).length)).trimStart()))
-  const downgradedInterior = downgrade(interior.join('\n'), opts).replace(/\n$/, '')
+function renderAlertLines (style, title, interiorLines, prefix, opts) {
+  const downgradedInterior = downgrade(interiorLines.join('\n'), opts).replace(/\n$/, '')
   const body = downgradedInterior.split('\n')
   for (const t of md.parse(downgradedInterior, {})) {
     if (t.type === 'paragraph_open' && t.map) {
@@ -81,10 +95,44 @@ function boxToAlert (lines, opts) {
   return out.map((l) => prefix + l)
 }
 
+function boxToAlert (lines, opts) {
+  const prefix = linePrefix(lines[0])
+  const parsed = parseTop(lines[0].slice(prefix.length).trimStart())
+  const style = parsed?.style || { fg: null, bg: null }
+  const title = parsed?.title || ''
+  const interior = lines.slice(1, -1).map((l) => stripSide(l.slice(Math.min(prefix.length, linePrefix(l).length)).trimStart()))
+  return renderAlertLines(style, title, interior, prefix, opts)
+}
+
+function splitBoxesToAlerts (lines, opts) {
+  const prefix = linePrefix(lines[0])
+  const sliceLines = lines.map((l) => l.slice(Math.min(prefix.length, l.length)))
+  const split = parseSplitBoxes(sliceLines)
+  if (!split) return lines
+  const out = []
+  split.cols.forEach((col, idx) => {
+    if (idx > 0) out.push(prefix.trimEnd())
+    out.push(...renderAlertLines(col.top.style, col.top.title, col.inner, prefix, opts))
+  })
+  return out
+}
+
+function rewriteTaskLine (line) {
+  const m = /^(\s*(?:>\s*)*(?:[-*+]|\d+\.)\s+)\[([ xX\-!?])\](\s+)(.*)$/.exec(line)
+  if (!m) return line
+  const [, listPrefix, state, space, rest] = m
+  if (state === 'x' || state === 'X') return `${listPrefix}[x]${space}${rest}`
+  if (state === ' ') return `${listPrefix}[ ]${space}${rest}`
+  if (state === '-') return `${listPrefix}[ ] *(in progress)* ${rest}`
+  if (state === '!') return `${listPrefix}[ ] **[!]** ${rest}`
+  if (state === '?') return `${listPrefix}[ ] **[?]** ${rest}`
+  return line
+}
+
 /**
  * Downgrade Hue Markdown to GitHub Flavored Markdown.
  * @param {string} src
- * @param {{ spans?: 'auto'|'plain'|'bold'|'latex' }} [opts]
+ * @param {{ spans?: 'auto'|'plain'|'bold'|'latex', kbd?: 'html'|'code' }} [opts]
  *   auto (default): red/orange text becomes **bold**, other colors are dropped
  */
 export function downgrade (src, opts = {}) {
@@ -96,7 +144,14 @@ export function downgrade (src, opts = {}) {
 
   let boxDepth = 0
   for (const t of tokens) {
-    if (t.type === 'hue_box_open') {
+    if (t.type === 'hue_columns_open') {
+      if (boxDepth++ === 0 && t.map) {
+        const [s, e] = t.map
+        replace.set(s, { end: e, lines: splitBoxesToAlerts(lines.slice(s, e), opts) })
+      }
+    } else if (t.type === 'hue_columns_close') {
+      boxDepth--
+    } else if (t.type === 'hue_box_open') {
       if (boxDepth++ === 0 && t.map) {
         const [s, e] = t.map
         replace.set(s, { end: e, lines: boxToAlert(lines.slice(s, e), opts) })
@@ -116,10 +171,16 @@ export function downgrade (src, opts = {}) {
     }
   }
 
-  // Rewrite spans paragraph by paragraph (a span never crosses a blank line)
+  // Rewrite spans and task markers paragraph by paragraph (a span never crosses a blank line)
   const out = []
   let chunk = []
-  const flush = () => { if (chunk.length) out.push(...downgradeSpans(chunk.join('\n'), opts).split('\n')); chunk = [] }
+  const flush = () => {
+    if (chunk.length) {
+      const taskRewritten = chunk.map(rewriteTaskLine)
+      out.push(...downgradeSpans(taskRewritten.join('\n'), opts).split('\n'))
+      chunk = []
+    }
+  }
   for (let i = 0; i < lines.length; i++) {
     const r = replace.get(i)
     if (r) { flush(); out.push(...r.lines); i = r.end - 1; continue }

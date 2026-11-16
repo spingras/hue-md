@@ -7,15 +7,31 @@ import { CASES, time } from '../scripts/bench-pathological.js'
 const md = new MarkdownIt().use(hue)
 
 // ------------------------------------------------------------ step 17: adversarial input stays fast
-// Budget is generous for slow CI machines; before the fix "unclosed openers" took ~2,400 ms.
+// These tests check how render time grows, not a fixed number of milliseconds,
+// so a slow CI machine cannot fail them. From n=5000 to n=20000 (4x the input),
+// linear code takes about 4x as long and quadratic code about 16x; before the
+// fix, "unclosed openers" was quadratic and took ~2,400 ms at n=20000. The hard
+// cap catches anything catastrophic on any machine.
 
-const BUDGET_MS = 200
+const MAX_GROWTH = 10
+const HARD_CAP_MS = 2000
+const best = (fn) => Math.min(time(fn), time(fn), time(fn))
+
+function assertLinear (renderer, name, make) {
+  const small = make(5000)
+  const big = make(20000)
+  renderer.render(small) // warm-up
+  renderer.render(big)
+  const tSmall = best(() => renderer.render(small))
+  const tBig = best(() => renderer.render(big))
+  const growth = tBig / Math.max(tSmall, 1)
+  assert.ok(tBig < HARD_CAP_MS, `${name}: n=20000 took ${tBig.toFixed(0)} ms (hard cap ${HARD_CAP_MS} ms)`)
+  assert.ok(growth < MAX_GROWTH, `${name}: 4x the input took ${growth.toFixed(1)}x the time (${tSmall.toFixed(1)} ms -> ${tBig.toFixed(1)} ms); linear is about 4x`)
+}
+
 for (const [name, make] of Object.entries(CASES)) {
-  test(`pathological: ${name} (n=20000) renders under ${BUDGET_MS} ms`, () => {
-    const src = make(20000)
-    md.render(src) // warm-up
-    const ms = time(() => md.render(src))
-    assert.ok(ms < BUDGET_MS, `${name}: ${ms.toFixed(0)} ms`)
+  test(`pathological: ${name} grows linearly (n=5000 -> 20000)`, () => {
+    assertLinear(md, name, make)
   })
 }
 
@@ -27,18 +43,13 @@ const ANGLE_CASES = {
   'many complete tags': (n) => '{red: ' + '<b title="}">x</b>'.repeat(n) + '}'
 }
 for (const [name, make] of Object.entries(ANGLE_CASES)) {
-  test(`pathological (raw HTML on): ${name} (n=20000) renders under ${BUDGET_MS} ms`, () => {
-    const src = make(20000)
-    mdHtml.render(src)
-    const ms = time(() => mdHtml.render(src))
-    assert.ok(ms < BUDGET_MS, `${name}: ${ms.toFixed(0)} ms`)
+  test(`pathological (raw HTML on): ${name} grows linearly (n=5000 -> 20000)`, () => {
+    assertLinear(mdHtml, name, make)
   })
 }
 
-test('pathological: braces without colons (n=50000) render under 200 ms', () => {
-  const src = '{'.repeat(50000) + ' ' + '{red'.repeat(20000)
-  const ms = time(() => md.render(src))
-  assert.ok(ms < BUDGET_MS, `${ms.toFixed(0)} ms`)
+test('pathological: braces without colons grow linearly (n=5000 -> 20000)', () => {
+  assertLinear(md, 'braces without colons', (n) => '{'.repeat(n * 2.5) + ' ' + '{red'.repeat(n))
 })
 
 // ------------------------------------------------------------ step 19: fuzzing
@@ -84,7 +95,7 @@ test('fuzz: 10,000 random documents never throw, stay fast, and keep tags balanc
 test('fuzz: input without "{" or box characters renders exactly like plain markdown-it', () => {
   const plain = new MarkdownIt()
   const rand = rng(42)
-  const safe = PIECES.filter((p) => !/[{┌╭+│|└╰]/.test(p) && !p.startsWith('```hue'))
+  const safe = PIECES.filter((p) => !/[{[┌╭+│|└╰]/.test(p) && !p.startsWith('```hue'))
   for (let i = 0; i < 5000; i++) {
     let src = ''
     for (let k = Math.floor(rand() * 60); k > 0; k--) src += safe[Math.floor(rand() * safe.length)]

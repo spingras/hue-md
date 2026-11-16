@@ -12,3 +12,5 @@ notepadpp-hue/test/*.exe
 vscode-hue/*.vsix
 CODE_REVIEW.md
 COMMUNITY_PITCH.md
+PITCH.hue.md
+LAUNCH.hue.md

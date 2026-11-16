@@ -14,7 +14,19 @@
       "include": "#hue-box-bottom"
     },
     {
+      "include": "#hue-task-item"
+    },
+    {
       "include": "#hue-inline-span"
+    },
+    {
+      "include": "#hue-diff-span"
+    },
+    {
+      "include": "#hue-keycap"
+    },
+    {
+      "include": "#hue-progress"
     }
   ],
   "repository": {
@@ -43,9 +55,17 @@
         "1": { "name": "punctuation.definition.border.side.hue" }
       }
     },
+    "hue-task-item": {
+      "match": "^(\\s*(?:[-*+]|\\d+\\.)\\s+)(\\[([ xX\\-!?])\\])(\\s+)",
+      "captures": {
+        "1": { "name": "punctuation.definition.list.begin.markdown" },
+        "2": { "name": "constant.language.task.status.hue" },
+        "3": { "name": "keyword.operator.task.hue" }
+      }
+    },
     "hue-inline-span": {
       "name": "meta.hue.span",
-      "match": "(\\{)((?:(?:red|orange|yellow|green|blue|purple|gray|ok|warn|info|note|!|#[0-9a-fA-F]{3,6}|bg-(?:red|orange|yellow|green|blue|purple|gray|#[0-9a-fA-F]{3,6}))(?:\\s*|(?=:)))+)(:)(\\s*)([^{}\r\n]*?)(\\})+",
+      "match": "(\\{)((?:(?:red|orange|yellow|green|blue|purple|gray|ok|warn|info|note|danger|muted|!|#[0-9a-fA-F]{3,6}|bg-(?:red|orange|yellow|green|blue|purple|gray|ok|warn|info|note|danger|muted|!|#[0-9a-fA-F]{3,6}))(?:\\s*|(?=:)))+)(:)(\\s*)([^{}\r\n]*?)(\\})+",
       "captures": {
         "1": { "name": "punctuation.definition.tag.begin.hue" },
         "2": { "name": "entity.name.tag.hue keyword.other.color.hue" },
@@ -53,6 +73,38 @@
         "4": { "name": "punctuation.whitespace.hue" },
         "5": { "name": "markup.raw.hue text.hue" },
         "6": { "name": "punctuation.definition.tag.end.hue" }
+      }
+    },
+    "hue-diff-span": {
+      "name": "meta.hue.diff",
+      "match": "(\\{)\\s*([+-])\\s*(:)(\\s*)([^{}\r\n]*?)(\\})",
+      "captures": {
+        "1": { "name": "punctuation.definition.tag.begin.hue" },
+        "2": { "name": "entity.name.tag.hue keyword.operator.diff.hue" },
+        "3": { "name": "punctuation.separator.key-value.hue" },
+        "4": { "name": "punctuation.whitespace.hue" },
+        "5": { "name": "markup.changed.hue text.hue" },
+        "6": { "name": "punctuation.definition.tag.end.hue" }
+      }
+    },
+    "hue-keycap": {
+      "name": "meta.hue.keycap",
+      "match": "(\\[\\[)([^\\[\\]\\s\r\n]{1,32})(\\]\\])",
+      "captures": {
+        "1": { "name": "punctuation.definition.keycap.begin.hue" },
+        "2": { "name": "constant.character.keycap.hue" },
+        "3": { "name": "punctuation.definition.keycap.end.hue" }
+      }
+    },
+    "hue-progress": {
+      "name": "meta.hue.progress",
+      "match": "(\\[)([=#.~ -]{4,40})(\\])(\\s+)(100|[1-9]?\\d)(%)",
+      "captures": {
+        "1": { "name": "punctuation.definition.progress.begin.hue" },
+        "2": { "name": "constant.numeric.progress.bar.hue" },
+        "3": { "name": "punctuation.definition.progress.end.hue" },
+        "5": { "name": "constant.numeric.progress.pct.hue" },
+        "6": { "name": "keyword.operator.unit.percentage.hue" }
       }
     }
   }

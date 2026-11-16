@@ -27,6 +27,9 @@ if ($vsixFiles.Count -eq 0) {
 foreach ($v in $vsixFiles) {
   Copy-Item $v.FullName (Join-Path $releaseDir $v.Name) -Force
 }
+# A copy without the version in its name, so releases/latest/download/hue-md.vsix
+# (the README's link) keeps working for every release.
+Copy-Item $vsixFiles[0].FullName (Join-Path $releaseDir "hue-md.vsix") -Force
 
 # 3. Notepad++ x64 Plugin (hue-md-npp-x64.zip)
 $nppDll = Join-Path $repoRoot "notepadpp-hue\dist\hue-md\hue-md.dll"
@@ -36,6 +39,9 @@ if (-not (Test-Path $nppDll)) {
 $nppStage = Join-Path $releaseDir "_stage_npp"
 New-Item -ItemType Directory -Path (Join-Path $nppStage "hue-md") -Force | Out-Null
 Copy-Item $nppDll (Join-Path $nppStage "hue-md\hue-md.dll") -Force
+# The plugin runs the CLI and opens the demo from its own folder (see hueCliCommand).
+Copy-Item (Join-Path $repoRoot "claude-code-hue\scripts\hue-md.cjs") (Join-Path $nppStage "hue-md\hue-md.cjs") -Force
+Copy-Item (Join-Path $repoRoot "demo\demo.hue.md") (Join-Path $nppStage "hue-md\demo.hue.md") -Force
 Copy-Item (Join-Path $repoRoot "notepadpp-hue\install-system.ps1") (Join-Path $nppStage "install.ps1") -Force
 Copy-Item (Join-Path $repoRoot "notepadpp-hue\README.md") (Join-Path $nppStage "README.md") -Force
 Compress-Archive -Path "$nppStage\*" -DestinationPath (Join-Path $releaseDir "hue-md-npp-x64.zip") -Force
@@ -61,7 +67,7 @@ $snipStage = Join-Path $releaseDir "_stage_snippets"
 New-Item -ItemType Directory -Path $snipStage -Force | Out-Null
 Copy-Item (Join-Path $repoRoot "snippets\*") $snipStage -Recurse -Force
 New-Item -ItemType Directory -Path (Join-Path $snipStage "emacs") -Force | Out-Null
-Copy-Item (Join-Path $repoRoot "emacs-hue\hue-md-mode.el") (Join-Path $snipStage "emacs\hue-md-mode.el") -Force
+Copy-Item (Join-Path $repoRoot "emacs-hue\hue-markdown-mode.el") (Join-Path $snipStage "emacs\hue-markdown-mode.el") -Force
 Compress-Archive -Path "$snipStage\*" -DestinationPath (Join-Path $releaseDir "hue-md-snippets.zip") -Force
 Remove-Item $snipStage -Recurse -Force
 

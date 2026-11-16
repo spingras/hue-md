@@ -12,17 +12,21 @@
   </a>
 </p>
 
-Hue MD adds color spans and boxes to Markdown text, which you can test in the [interactive playground](https://spingras.github.io/hue-md/).
+Hue MD adds color spans, diff spans, key caps, progress bars, multi-state tasks, and boxes to Markdown text. You can test the syntax in the [interactive playground](https://spingras.github.io/hue-md/) or read the Hue source of this file in [README.hue.md](README.hue.md).
 
 ```markdown
-{ok: passing}
+{ok: passing} · {+: added} · {-: removed} · [[Ctrl+Shift+P]] · [========..] 80%
 
-+-- info Note
-| Read this text.
-+--
+- [x] Ship core parser
+- [-] Run terminal slide deck
+- [!] Resolve blocker
+
++-- ok Do This                      +-- warn Avoid This
+| Keep raw source readable.         | Pollute notes with raw HTML.
++--                                 +--
 ```
 
-The span renders in green and the box renders with a blue border.
+The raw text stays readable in plain editors, terminal diffs, and AI prompts.
 
 ---
 
@@ -30,8 +34,9 @@ The span renders in green and the box renders with a blue border.
 
 | Platform | Download | Steps |
 | :--- | :--- | :--- |
-| VS Code, Cursor, Windsurf | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=spingras.hue-md) · [`.vsix`](https://github.com/spingras/hue-md/releases/latest/download/hue-md-0.1.1.vsix) | 1. Search for `spingras.hue-md` in Extensions.<br>2. Select Install. |
+| VS Code, Cursor, Windsurf | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=spingras.hue-md) · [`.vsix`](https://github.com/spingras/hue-md/releases/latest/download/hue-md.vsix) | 1. Search for `spingras.hue-md` in Extensions.<br>2. Select Install. |
 | npm CLI and library | [`npm i -g hue-md`](https://www.npmjs.com/package/hue-md) | Run `npm install -g hue-md`. |
+| Claude Code | [`claude-code-hue/`](claude-code-hue/) | In Claude Code, run `/plugin install hue-md --marketplace spingras/hue-md`.<br>On versions before 2.1.275: `/plugin marketplace add spingras/hue-md`, then `/plugin install hue-md@spingras`. |
 | Notepad++ (Windows x64) | [`hue-md-npp-x64.zip`](https://github.com/spingras/hue-md/releases/latest/download/hue-md-npp-x64.zip) | 1. Download the zip archive.<br>2. Extract `HueMarkdown.dll` to your Notepad++ plugins folder.<br>3. Restart Notepad++. |
 | Web stylesheet | [`hue-md.css`](https://github.com/spingras/hue-md/releases/latest/download/hue-md.css) | Add `<link rel="stylesheet" href="hue-md.css">` to your HTML `<head>`. |
 | Obsidian | [`hue-md-obsidian.zip`](https://github.com/spingras/hue-md/releases/latest/download/hue-md-obsidian.zip) | 1. Extract the zip archive to your vault `.obsidian/plugins/hue-md/` folder.<br>2. Enable Hue MD in Community plugins settings. |
@@ -59,15 +64,15 @@ Choose one of five box types: `info`, `ok`, `note`, `warn`, or `!`.
 Write boxes in `.hue.md` source files:
 
 ```markdown
-+-- info Effortless Boxes
++-- info Open Boxes
 | Start with `+--` followed by `info`, `ok`, `note`, `warn`, or `!`
-| Every `|` line automatically starts on a new line
-| Close with `+--` — no right border or alignment needed
+| Every `|` line starts on a new line
+| Close with `+--` without a right border
 +--
 
 +-- ok Full Markdown Inside
 | Boxes support **bold**, *italics*, `inline code`, and {ok: colored spans}.
-| Everything works out of the box across Web, CLI, VS Code, and Notepad++.
+| Everything works across Web, CLI, VS Code, Claude Code, and Notepad++.
 +--
 
 +-- note GitHub Ready
@@ -90,17 +95,17 @@ Write boxes in `.hue.md` source files:
 The `hue-md downgrade` command converts these boxes into GitHub alerts:
 
 > [!NOTE]
-> **Effortless Boxes**
+> **Open Boxes**
 >
 > Start with `+--` followed by `info`, `ok`, `note`, `warn`, or `!`  
-> Every `|` line automatically starts on a new line  
-> Close with `+--` — no right border or alignment needed
+> Every `|` line starts on a new line  
+> Close with `+--` without a right border
 
 > [!TIP]
 > **Full Markdown Inside**
 >
 > Boxes support **bold**, *italics*, `inline code`, and colored spans.  
-> Everything works out of the box across Web, CLI, VS Code, and Notepad++.
+> Everything works across Web, CLI, VS Code, Claude Code, and Notepad++.
 
 > [!IMPORTANT]
 > **GitHub Ready**
@@ -123,16 +128,63 @@ The `hue-md downgrade` command converts these boxes into GitHub alerts:
 
 You can also use closed borders with ASCII `+-- --+`, Unicode `┌─ ─┐`, or rounded `╭─ ─╮` characters.
 
-### Color spans
+### Side-by-side split boxes
 
-Wrap text in `{style: text}`.
+Place two or more boxes on the same lines separated by at least two spaces. The parser renders them as equal-width columns with a 16 px gap:
+
+```markdown
++-- ok Do This (Recommended)        +-- warn Avoid This
+| Keep raw source human-readable.   | Pollute notes with raw `<span>` HTML.
+| Use semantic colors (`ok`, `!`).  | Trap docs inside a JSX build step.
+| Run `npm test` before promoting.  | Push untested syntax to production.
++--                                 +--
+```
+
+When you run `hue-md downgrade`, side-by-side boxes convert into sequential GitHub alerts.
+
+### Color spans and diff spans
+
+Wrap inline text in `{style: text}` for colors or `{+: text}` and `{-: text}` for inline diffs.
 
 | Type | Examples |
 | :--- | :--- |
-| Semantic status | `{ok: passing}`, `{info: beta}`, `{note: v2.0}`, `{warn: 71%}`, `{!: blocked}` |
+| Semantic status | `{ok: passing}`, `{info: beta}`, `{note: v0.2}`, `{warn: 71%}`, `{!: blocked}` |
+| Inline diff | `{+: added text}`, `{-: removed text}` |
 | Palette color | `{red: ...}`, `{orange: ...}`, `{yellow: ...}`, `{green: ...}`, `{blue: ...}`, `{purple: ...}`, `{gray: ...}` |
 | Background color | `{bg-yellow: review this}`, `{blue bg-gray: badge}` |
 | Hex color | `{#c0ffee bg-#333333: custom hex}` |
+
+### Multi-state tasks
+
+Use five task markers at the start of list items to track status:
+
+| Marker | State | Color | Downgrade output |
+| :--- | :--- | :--- | :--- |
+| `- [ ]` | Todo | Gray | `- [ ]` |
+| `- [-]` | In progress | Blue | `- [ ] *(in progress)*` |
+| `- [!]` | Blocked | Red | `- [ ] **[!]**` |
+| `- [?]` | Question | Purple | `- [ ] **[?]**` |
+| `- [x]` or `- [X]` | Done | Green | `- [x]` |
+
+### Key caps and progress bars
+
+Wrap keyboard shortcuts in double brackets to render `<kbd>` elements:
+
+```markdown
+Press [[Ctrl+Shift+H]] in Notepad++ or [[Cmd+K]] in VS Code.
+```
+
+WikiLinks with spaces such as `[[Project Roadmap]]` and array indices such as `arr[[0]]` remain untouched.
+
+Write progress bars with 4 to 40 bar characters (`=`, `#`, `.`, `-`, `~`, or space) followed by a percentage from `0%` to `100%`:
+
+```markdown
+| Milestone | Status | Completion |
+| :--- | :--- | :--- |
+| Core Spec | {ok: shipped} | [==========] 100% |
+| CLI Slides | {info: active} | [========..] 80% |
+| Rust Port | {warn: wip} | [====......] 40% |
+```
 
 ---
 
@@ -150,7 +202,7 @@ Wrap text in `{style: text}`.
   <img alt="Hue MD in Notepad++ with side-by-side live preview" src="assets/hero-light.jpg" width="100%">
 </p>
 
-### Terminal viewer (hue-md view)
+### Terminal viewer and slide decks (hue-md view / slides)
 
 <p align="center">
   <img alt="hue-md view in terminal with 24-bit ANSI truecolor frames" src="assets/terminal.svg" width="100%">
@@ -168,6 +220,12 @@ View a document in the terminal with ANSI colors:
 hue-md view demo/demo.hue.md
 ```
 
+Present a `.hue.md` file as a terminal slide deck (split on top-level `---` lines):
+
+```sh
+hue-md slides demo/demo.hue.md -i
+```
+
 Downgrade a document to GitHub Flavored Markdown with native alerts:
 
 ```sh
@@ -180,6 +238,15 @@ Export a document to standalone HTML:
 hue-md html demo/demo.hue.md --standalone -o index.html
 ```
 
+### Claude Code plugin
+
+The Claude Code plugin teaches Claude the Hue syntax, so it writes valid `.hue.md` files when you ask for status reports, checklists, diffs, or callout boxes. It also adds two commands:
+
+- `/hue-md:preview <file>` shows the file with its colors, tasks, key caps, progress bars, and boxes in a pane beside the chat. The pane follows the file as it changes, and opens by itself when Claude writes or edits a `.hue.md` file. Where Claude Code cannot show the pane, the command opens an HTML preview in your browser instead.
+- `/hue-md:github <file>` writes the GitHub Markdown version next to the file (`notes.hue.md` to `notes.md`).
+
+To have Claude write the GitHub copy after every edit of a `.hue.md` file, turn on the plugin's `auto_downgrade` option in `/config`. The plugin never overwrites a `.md` file that it did not generate. It includes its own copy of the hue-md CLI, so it needs Node but no npm install.
+
 ---
 
 ## Reliability
@@ -188,7 +255,7 @@ Automated tests verify parser reliability and performance:
 - The parser passes all 652 test cases from the CommonMark 0.31.2 specification.
 - Tests show 0 unintended changes across 200 npm README files and 50 AI answers.
 - All seven palette colors meet WCAG AA contrast ratios of at least 4.5:1 in light and dark modes.
-- The parser processes 20,000 unclosed braces in under 20 ms.
+- The parser processes 20,000 unclosed tokens in under 200 ms.
 
 ---
 
@@ -205,22 +272,23 @@ import fs from 'node:fs'
 import MarkdownIt from 'markdown-it'
 import hue, { css } from 'hue-md'
 import { downgrade } from 'hue-md/downgrade'
-import { renderAnsi } from 'hue-md/ansi'
+import { renderAnsi, renderSlides } from 'hue-md/ansi'
 
 // 1. Render Hue Markdown to HTML
 const md = new MarkdownIt().use(hue)
-const html = md.render('Build: {ok: passing}')
+const html = md.render('Build: {ok: passing} · Shortcut: [[Ctrl+K]]')
 const stylesheet = css() // light + dark CSS custom properties
 
 // 2. Downgrade .hue.md to GitHub Flavored Markdown (with > [!NOTE] alerts)
 const sourceText = fs.readFileSync('notes.hue.md', 'utf8')
 const gfm = downgrade(sourceText)
 
-// 3. Render 24-bit ANSI truecolor for terminals
+// 3. Render 24-bit ANSI truecolor or terminal slides
 const ansi = renderAnsi(sourceText, { width: 80, theme: 'dark' })
+const slides = renderSlides(sourceText, { width: 80, theme: 'dark' })
 ```
 
-The [language specification](spec/spec.md) defines the grammar and 58 test examples.
+The [language specification](spec/spec.md) and [v0.2 specification](acc/ACC.md) define the grammar and 88 executable test examples.
 
 Run the test suite in a clone of this repository:
 

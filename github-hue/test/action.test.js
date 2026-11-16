@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { runAction } from '../action/src/index.js'
+import { runAction, generatedHeader, isGenerated } from '../action/src/index.js'
 
 test('GitHub Action syncs .hue.md to .md with native GitHub alerts', () => {
   const tmp = mkdtempSync(join(tmpdir(), 'hue-action-test-'))
@@ -51,8 +51,9 @@ test('GitHub Action checkOnly flags out-of-sync files (including INPUT_CHECK-ONL
     const mdFile = join(tmp, 'readme.md')
     const plainMd = join(tmp, 'notes.md')
 
+    const stale = generatedHeader('readme.hue.md') + 'Stale content'
     writeFileSync(hueFile, 'Version: {warn: outdated}', 'utf8')
-    writeFileSync(mdFile, 'Stale content', 'utf8')
+    writeFileSync(mdFile, stale, 'utf8')
     writeFileSync(plainMd, 'Keep {red: literal} in plain .md', 'utf8')
 
     process.env['INPUT_CHECK-ONLY'] = 'true'
@@ -61,7 +62,7 @@ test('GitHub Action checkOnly flags out-of-sync files (including INPUT_CHECK-ONL
     assert.equal(checkRes.success, false)
     assert.equal(checkRes.outOfSyncCount, 1)
     // Must not have written mdFile in check-only mode
-    assert.equal(readFileSync(mdFile, 'utf8'), 'Stale content')
+    assert.equal(readFileSync(mdFile, 'utf8'), stale)
 
     // Even if pattern is ".md", plain notes.md must never be overwritten in place
     delete process.env['INPUT_CHECK-ONLY']
@@ -70,6 +71,39 @@ test('GitHub Action checkOnly flags out-of-sync files (including INPUT_CHECK-ONL
   } finally {
     if (prevCheck === undefined) delete process.env['INPUT_CHECK-ONLY']
     else process.env['INPUT_CHECK-ONLY'] = prevCheck
+    rmSync(tmp, { recursive: true, force: true })
+  }
+})
+
+test('GitHub Action never overwrites a hand-written .md next to a .hue.md', () => {
+  const tmp = mkdtempSync(join(tmpdir(), 'hue-action-handwritten-'))
+  try {
+    const hueFile = join(tmp, 'README.hue.md')
+    const mdFile = join(tmp, 'README.md')
+    const handWritten = '# My full README\n\nInstall table and everything else.\n'
+    writeFileSync(hueFile, 'Short {ok: Hue} version', 'utf8')
+    writeFileSync(mdFile, handWritten, 'utf8')
+
+    const syncRes = runAction({ cwd: tmp, pattern: '.hue.md', checkOnly: false })
+    assert.equal(syncRes.success, true)
+    assert.equal(syncRes.outOfSyncCount, 0)
+    assert.deepEqual(syncRes.skipped, [mdFile])
+    assert.equal(readFileSync(mdFile, 'utf8'), handWritten)
+
+    // A pull request check does not fail on a file the sync does not manage.
+    const checkRes = runAction({ cwd: tmp, pattern: '.hue.md', checkOnly: true })
+    assert.equal(checkRes.success, true)
+    assert.equal(readFileSync(mdFile, 'utf8'), handWritten)
+
+    // A file the sync generated is recognised and kept up to date.
+    const generated = join(tmp, 'notes.hue.md')
+    writeFileSync(generated, '{warn: v1}', 'utf8')
+    runAction({ cwd: tmp, pattern: '.hue.md', checkOnly: false })
+    assert.ok(isGenerated(readFileSync(join(tmp, 'notes.md'), 'utf8')))
+    writeFileSync(generated, '{warn: v2}', 'utf8')
+    runAction({ cwd: tmp, pattern: '.hue.md', checkOnly: false })
+    assert.ok(readFileSync(join(tmp, 'notes.md'), 'utf8').includes('**v2**'))
+  } finally {
     rmSync(tmp, { recursive: true, force: true })
   }
 })

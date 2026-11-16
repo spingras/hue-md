@@ -16,6 +16,7 @@
 #define UNICODE
 #define _UNICODE
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <windows.h>
 #include <ole2.h>
 #include <exdisp.h>
@@ -36,6 +37,7 @@
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "oleaut32.lib")
+#pragma comment(lib, "advapi32.lib")
 
 // ---------------------------------------------------------------------------
 // Notepad++ & Scintilla ABI definitions (x64 Unicode)
@@ -369,7 +371,43 @@ static WebHost *g_pWebHost = nullptr;
 static bool g_coloringEnabled = true;
 static bool g_autoPreviewOnSave = true;
 static std::string g_lastRenderedContent;
-static wchar_t g_repoRoot[MAX_PATH] = L"c:\\Users\\bartv\\Documents\\Coding Projects\\modern-markdown";
+
+// Where the hue-md CLI and the demo file live, in this order:
+//   1. HUE_MD_ROOT, a clone of the hue-md repository (for development);
+//   2. next to this DLL: hue-md.cjs and demo.hue.md ship in the release zip;
+//   3. the hue-md npm package, through npx.
+static std::wstring dllDir() {
+    wchar_t path[MAX_PATH] = { 0 };
+    ::GetModuleFileNameW(g_hModule, path, MAX_PATH);
+    ::PathRemoveFileSpecW(path);
+    return std::wstring(path);
+}
+
+static std::wstring hueRootFromEnv() {
+    wchar_t buf[MAX_PATH] = { 0 };
+    DWORD n = ::GetEnvironmentVariableW(L"HUE_MD_ROOT", buf, MAX_PATH);
+    return (n > 0 && n < MAX_PATH) ? std::wstring(buf) : std::wstring();
+}
+
+static std::wstring hueCliCommand() {
+    std::wstring root = hueRootFromEnv();
+    if (!root.empty()) {
+        std::wstring cli = root + L"\\md-hue\\bin\\md-hue.js";
+        if (::PathFileExistsW(cli.c_str())) return L"node.exe \"" + cli + L"\"";
+    }
+    std::wstring bundled = dllDir() + L"\\hue-md.cjs";
+    if (::PathFileExistsW(bundled.c_str())) return L"node.exe \"" + bundled + L"\"";
+    return L"cmd.exe /c npx --yes hue-md";
+}
+
+static std::wstring demoFilePath() {
+    std::wstring root = hueRootFromEnv();
+    if (!root.empty()) {
+        std::wstring demo = root + L"\\demo\\demo.hue.md";
+        if (::PathFileExistsW(demo.c_str())) return demo;
+    }
+    return dllDir() + L"\\demo.hue.md";
+}
 
 enum MenuIndex {
     CMD_TOGGLE_DOCK_PREVIEW = 0,
@@ -502,6 +540,18 @@ static bool parseColorToken(const std::string &tok, int &fgId, int &bgId, uint32
     hexFg = 0;
     hexBg = 0;
 
+    // Inline diff spans: {+: added} (green) and {-: removed} (red)
+    if (tok == "+") {
+        fgId = HUE_GREEN;
+        bgId = HUE_GREEN;
+        return true;
+    }
+    if (tok == "-") {
+        fgId = HUE_RED;
+        bgId = HUE_RED;
+        return true;
+    }
+
     std::vector<std::string> parts;
     std::string cur;
     for (char c : tok) {
@@ -626,6 +676,34 @@ struct BoxMatch {
     int colorId;
 };
 
+static int extractBoxHeaderColor(const std::string &seg) {
+    size_t p = 0;
+    while (p < seg.size() && (seg[p] == '+' || seg[p] == '-' || seg[p] == '=' || (unsigned char)seg[p] >= 0x80)) p++;
+    while (p < seg.size() && (seg[p] == ' ' || seg[p] == '\t')) p++;
+    std::string rem = seg.substr(p);
+    std::string firstWord;
+    size_t sp = rem.find_first_of(" \t-\r\n+");
+    if (sp != std::string::npos) firstWord = rem.substr(0, sp);
+    else firstWord = rem;
+
+    int colorId = resolveColorName(firstWord);
+    return (colorId != HUE_NONE) ? colorId : HUE_GRAY;
+}
+
+static bool isTopHeaderStart(const std::string &s, size_t pos = 0) {
+    if (pos >= s.size()) return false;
+    std::string sub = s.substr(pos);
+    return (sub.rfind("┌", 0) == 0 || sub.rfind("╭", 0) == 0 || sub.rfind("+--", 0) == 0 || sub.rfind("+==", 0) == 0);
+}
+
+static bool isBottomBorderStart(const std::string &s) {
+    size_t p = 0;
+    while (p < s.size() && (s[p] == ' ' || s[p] == '\t')) p++;
+    if (p >= s.size()) return false;
+    std::string sub = s.substr(p);
+    return (sub.rfind("└", 0) == 0 || sub.rfind("╰", 0) == 0 || sub.rfind("+--", 0) == 0 || sub.rfind("+==", 0) == 0);
+}
+
 static void findDrawnBoxes(const char *buf, Sci_Position len, std::vector<BoxMatch> &boxes) {
     std::vector<std::pair<Sci_Position, Sci_Position>> lines;
     Sci_Position lineStart = 0;
@@ -646,36 +724,19 @@ static void findDrawnBoxes(const char *buf, Sci_Position len, std::vector<BoxMat
         if (e - s < 3) { idx++; continue; }
 
         std::string l(buf + s, e - s);
-        int colorId = HUE_NONE;
-        bool isTopBorder = false;
-
-        if (l.rfind("┌", 0) == 0 || l.rfind("╭", 0) == 0 || l.rfind("+--", 0) == 0 || l.rfind("+==", 0) == 0) {
-            isTopBorder = true;
-        }
-
-        if (isTopBorder) {
-            // Find the label text after initial corner and dashes
-            size_t p = 0;
-            while (p < l.size() && (l[p] == '+' || l[p] == '-' || l[p] == '=' || (unsigned char)l[p] >= 0x80)) p++;
-            while (p < l.size() && (l[p] == ' ' || l[p] == '\t')) p++;
-            std::string rem = l.substr(p);
-            std::string firstWord;
-            size_t sp = rem.find_first_of(" \t-\r\n+");
-            if (sp != std::string::npos) firstWord = rem.substr(0, sp);
-            else firstWord = rem;
-
-            for (int c = 0; c < HUE_COLOR_COUNT; ++c) {
-                if (firstWord == kPalette[c].name) {
-                    colorId = c;
-                    break;
+        if (isTopHeaderStart(l, 0)) {
+            std::vector<size_t> colStarts = { 0 };
+            for (size_t pos = 3; pos + 3 <= l.size(); ++pos) {
+                if (l[pos] != ' ' && l[pos - 1] == ' ' && l[pos - 2] == ' ' && isTopHeaderStart(l, pos)) {
+                    colStarts.push_back(pos);
                 }
             }
-            if (colorId == HUE_NONE) {
-                if (firstWord == "danger" || firstWord == "!") colorId = HUE_RED;
-                else if (firstWord == "warn" || firstWord == "warning") colorId = HUE_ORANGE;
-                else if (firstWord == "ok" || firstWord == "success") colorId = HUE_GREEN;
-                else if (firstWord == "info" || firstWord == "tip") colorId = HUE_BLUE;
-                else if (firstWord == "note") colorId = HUE_PURPLE;
+
+            std::vector<int> colColors;
+            for (size_t c = 0; c < colStarts.size(); ++c) {
+                size_t cStart = colStarts[c];
+                size_t cEnd = (c + 1 < colStarts.size()) ? colStarts[c + 1] : l.size();
+                colColors.push_back(extractBoxHeaderColor(l.substr(cStart, cEnd - cStart)));
             }
 
             size_t botIdx = idx + 1;
@@ -684,7 +745,7 @@ static void findDrawnBoxes(const char *buf, Sci_Position len, std::vector<BoxMat
                 Sci_Position bs = lines[botIdx].first;
                 Sci_Position be = lines[botIdx].second;
                 std::string bl(buf + bs, be - bs);
-                if (bl.rfind("└", 0) == 0 || bl.rfind("╰", 0) == 0 || bl.rfind("+--", 0) == 0 || bl.rfind("+==", 0) == 0) {
+                if (isBottomBorderStart(bl)) {
                     foundBottom = true;
                     break;
                 }
@@ -692,16 +753,115 @@ static void findDrawnBoxes(const char *buf, Sci_Position len, std::vector<BoxMat
             }
 
             if (foundBottom) {
-                BoxMatch bm;
-                bm.startPos = lines[idx].first;
-                bm.endPos = lines[botIdx].second;
-                bm.colorId = (colorId != HUE_NONE) ? colorId : HUE_GRAY;
-                boxes.push_back(bm);
+                if (colStarts.size() == 1) {
+                    BoxMatch bm;
+                    bm.startPos = lines[idx].first;
+                    bm.endPos = lines[botIdx].second;
+                    bm.colorId = colColors[0];
+                    boxes.push_back(bm);
+                } else {
+                    for (size_t row = idx; row <= botIdx; ++row) {
+                        Sci_Position rs = lines[row].first;
+                        Sci_Position re = lines[row].second;
+                        size_t rowLen = (size_t)(re - rs);
+                        for (size_t c = 0; c < colStarts.size(); ++c) {
+                            size_t cStart = colStarts[c];
+                            if (cStart >= rowLen) continue;
+                            size_t cEnd = (c + 1 < colStarts.size()) ? std::min(rowLen, colStarts[c + 1] - 2) : rowLen;
+                            while (cEnd > cStart && (buf[rs + cEnd - 1] == ' ' || buf[rs + cEnd - 1] == '\t')) cEnd--;
+                            if (cEnd > cStart) {
+                                BoxMatch bm;
+                                bm.startPos = rs + (Sci_Position)cStart;
+                                bm.endPos = rs + (Sci_Position)cEnd;
+                                bm.colorId = colColors[c];
+                                boxes.push_back(bm);
+                            }
+                        }
+                    }
+                }
                 idx = botIdx + 1;
                 continue;
             }
         }
         idx++;
+    }
+}
+
+static void colorAccConstructs(HWND sci, const char *buf, Sci_Position len) {
+    Sci_Position i = 0;
+    while (i < len) {
+        if ((i == 0 || buf[i - 1] == '\n') && i + 5 < len) {
+            Sci_Position p = i;
+            while (p < len && (buf[p] == ' ' || buf[p] == '\t')) p++;
+            if (p < len && (buf[p] == '-' || buf[p] == '*' || buf[p] == '+') && (buf[p + 1] == ' ' || buf[p + 1] == '\t')) {
+                p += 2;
+                while (p < len && (buf[p] == ' ' || buf[p] == '\t')) p++;
+                if (p + 3 < len && buf[p] == '[' && buf[p + 2] == ']' && (buf[p + 3] == ' ' || buf[p + 3] == '\t')) {
+                    char m = buf[p + 1];
+                    int cId = HUE_NONE;
+                    if (m == 'x' || m == 'X') cId = HUE_GREEN;
+                    else if (m == '-') cId = HUE_BLUE;
+                    else if (m == '!') cId = HUE_RED;
+                    else if (m == '?') cId = HUE_PURPLE;
+                    else if (m == ' ') cId = HUE_GRAY;
+                    if (cId != HUE_NONE) {
+                        ::SendMessage(sci, SCI_SETINDICATORCURRENT, INDIC_HUE_BG_BASE + cId, 0);
+                        ::SendMessage(sci, SCI_INDICATORFILLRANGE, p, 3);
+                        ::SendMessage(sci, SCI_SETINDICATORCURRENT, INDIC_HUE_FG_BASE + cId, 0);
+                        ::SendMessage(sci, SCI_INDICATORFILLRANGE, p, 3);
+                    }
+                }
+            }
+        }
+
+        if (i + 4 < len && buf[i] == '[' && buf[i + 1] == '[') {
+            Sci_Position close = i + 2;
+            while (close + 1 < len && close - i < 34 && buf[close] != '\n' && buf[close] != '\r' && buf[close] != '[' && !(buf[close] == ']' && buf[close + 1] == ']')) {
+                close++;
+            }
+            if (close + 1 < len && buf[close] == ']' && buf[close + 1] == ']' && close > i + 2) {
+                Sci_Position kLen = (close + 2) - i;
+                ::SendMessage(sci, SCI_SETINDICATORCURRENT, INDIC_HUE_BG_BASE + HUE_GRAY, 0);
+                ::SendMessage(sci, SCI_INDICATORFILLRANGE, i, kLen);
+                ::SendMessage(sci, SCI_SETINDICATORCURRENT, INDIC_HUE_FG_BASE + HUE_BLUE, 0);
+                ::SendMessage(sci, SCI_INDICATORFILLRANGE, i + 2, close - (i + 2));
+                i = close + 2;
+                continue;
+            }
+        }
+
+        if (buf[i] == '[' && (i == 0 || buf[i - 1] != '[')) {
+            Sci_Position p = i + 1;
+            int filled = 0, empty = 0;
+            while (p < len && (buf[p] == '=' || buf[p] == '#')) { filled++; p++; }
+            while (p < len && (buf[p] == '.' || buf[p] == '-' || buf[p] == '_')) { empty++; p++; }
+            int total = filled + empty;
+            if (total >= 4 && total <= 40 && p < len && buf[p] == ']') {
+                p++;
+                while (p < len && buf[p] == ' ') p++;
+                Sci_Position numStart = p;
+                int pct = 0;
+                while (p < len && buf[p] >= '0' && buf[p] <= '9') {
+                    pct = pct * 10 + (buf[p] - '0');
+                    p++;
+                }
+                if (p > numStart && p < len && buf[p] == '%' && pct >= 0 && pct <= 100) {
+                    int cId = (pct >= 100) ? HUE_GREEN : (pct >= 50) ? HUE_BLUE : (pct >= 25) ? HUE_ORANGE : HUE_RED;
+                    ::SendMessage(sci, SCI_SETINDICATORCURRENT, INDIC_HUE_BG_BASE + cId, 0);
+                    ::SendMessage(sci, SCI_INDICATORFILLRANGE, i, (p + 1) - i);
+                    if (filled > 0) {
+                        ::SendMessage(sci, SCI_SETINDICATORCURRENT, INDIC_HUE_FG_BASE + cId, 0);
+                        ::SendMessage(sci, SCI_INDICATORFILLRANGE, i + 1, filled);
+                    }
+                    ::SendMessage(sci, SCI_SETINDICATORCURRENT, INDIC_HUE_FG_BASE + cId, 0);
+                    ::SendMessage(sci, SCI_INDICATORFILLRANGE, numStart, (p + 1) - numStart);
+                    i = p + 1;
+                    continue;
+                }
+            }
+        }
+
+        i++;
     }
 }
 
@@ -730,6 +890,8 @@ static void refreshHueColoring(bool forceReconfig = false) {
         ::SendMessage(sci, SCI_SETINDICATORCURRENT, bgInd, 0);
         ::SendMessage(sci, SCI_INDICATORFILLRANGE, box.startPos, box.endPos - box.startPos);
     }
+
+    colorAccConstructs(sci, buf, len);
 
     std::vector<SpanMatch> spans;
     parseInlineTags(buf, len, spans);
@@ -852,8 +1014,7 @@ void updateDockedPreview(bool force) {
 
     if (!writeUtf8File(inFile, content)) return;
 
-    std::wstring cliPath = std::wstring(g_repoRoot) + L"\\md-hue\\bin\\md-hue.js";
-    std::wstring cmd = L"node.exe \"" + cliPath + L"\" html \"" + inFile + L"\" --standalone -o \"" + outFile + L"\"";
+    std::wstring cmd = hueCliCommand() + L" html \"" + inFile + L"\" --standalone -o \"" + outFile + L"\"";
 
     bool renderedWithNode = runProcessHidden(cmd);
     std::string htmlContent;
@@ -946,8 +1107,7 @@ void __cdecl cmdOpenBrowserPreview() {
 
     if (!writeUtf8File(inFile, content)) return;
 
-    std::wstring cliPath = std::wstring(g_repoRoot) + L"\\md-hue\\bin\\md-hue.js";
-    std::wstring cmd = L"node.exe \"" + cliPath + L"\" html \"" + inFile + L"\" --standalone -o \"" + outFile + L"\"";
+    std::wstring cmd = hueCliCommand() + L" html \"" + inFile + L"\" --standalone -o \"" + outFile + L"\"";
     runProcessHidden(cmd);
 
     ::ShellExecuteW(g_nppData._nppHandle, L"open", outFile.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
@@ -970,8 +1130,7 @@ void __cdecl cmdDowngradeToGitHub() {
 
     if (!writeUtf8File(inFile, content)) return;
 
-    std::wstring cliPath = std::wstring(g_repoRoot) + L"\\md-hue\\bin\\md-hue.js";
-    std::wstring cmd = L"node.exe \"" + cliPath + L"\" downgrade \"" + inFile + L"\" -o \"" + outFile + L"\"";
+    std::wstring cmd = hueCliCommand() + L" downgrade \"" + inFile + L"\" -o \"" + outFile + L"\"";
 
     if (runProcessHidden(cmd)) {
         std::string downgraded;
@@ -1026,7 +1185,7 @@ void __cdecl cmdToggleColoring() {
 }
 
 void __cdecl cmdOpenDemo() {
-    std::wstring demoPath = std::wstring(g_repoRoot) + L"\\demo\\demo.hue.md";
+    std::wstring demoPath = demoFilePath();
     if (::PathFileExistsW(demoPath.c_str())) {
         ::SendMessage(g_nppData._nppHandle, NPPM_DOOPEN, 0, (LPARAM)demoPath.c_str());
         refreshHueColoring(true);
@@ -1046,12 +1205,26 @@ void __cdecl cmdAbout() {
         L"Integrated Side-by-Side Live Preview + In-Editor Syntax Coloring for Hue Markdown (.hue.md).\n\n"
         L"Supported syntax:\n"
         L"  • Spans: {red: text}, {warn: text}, {blue bg-gray: text}, {#c0ffee: hex}\n"
-        L"  • Semantic tokens: ! / danger (red), warn (orange), ok (green), info (blue), note (purple), muted (gray)\n"
-        L"  • Drawn boxes: Unicode (┌──┐), Rounded (╭──╮), and ASCII (+--+)\n\n"
+        L"  • Diff spans: {+: added text}, {-: removed text}\n"
+        L"  • Multi-state tasks: - [ ], - [-], - [!], - [?], - [x]\n"
+        L"  • Key caps & progress bars: [[Ctrl+Shift+H]], [========..] 80%\n"
+        L"  • Drawn boxes & split columns: Unicode (┌──┐), Rounded (╭──╮), ASCII (+--)\n\n"
         L"Shortcuts:\n"
         L"  • Ctrl+Shift+H : Toggle Integrated Side-by-Side Live Preview Panel\n"
         L"  • Ctrl+Shift+G : Downgrade Current Buffer to GitHub Alerts";
     ::MessageBoxW(g_nppData._nppHandle, msg, L"About Hue Markdown", MB_OK | MB_ICONINFORMATION);
+}
+
+static void ensureBrowserEmulationEdge() {
+    HKEY hKey = nullptr;
+    if (::RegCreateKeyExW(
+            HKEY_CURRENT_USER,
+            L"Software\\Microsoft\\Internet Explorer\\Main\\FeatureControl\\FEATURE_BROWSER_EMULATION",
+            0, nullptr, 0, KEY_SET_VALUE, nullptr, &hKey, nullptr) == ERROR_SUCCESS) {
+        DWORD mode = 11001; // IE11 Edge mode
+        ::RegSetValueExW(hKey, L"notepad++.exe", 0, REG_DWORD, (const BYTE *)&mode, sizeof(mode));
+        ::RegCloseKey(hKey);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1131,6 +1304,7 @@ extern "C" __declspec(dllexport) void __cdecl beNotified(SCNotification *notifyC
     if (!notifyCode) return;
     switch (notifyCode->nmhdr.code) {
         case NPPN_READY: {
+            ensureBrowserEmulationEdge();
             ::OleInitialize(NULL);
 
             WNDCLASSEX wc = { sizeof(WNDCLASSEX) };

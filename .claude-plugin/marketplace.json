@@ -1,0 +1,15 @@
+{
+  "name": "spingras",
+  "description": "Claude Code plugins by SpinGras",
+  "owner": {
+    "name": "spingras",
+    "url": "https://github.com/spingras"
+  },
+  "plugins": [
+    {
+      "name": "hue-md",
+      "source": "./claude-code-hue",
+      "description": "Write Hue Markdown (.hue.md): colored spans, diff spans, keycaps, progress bars, multi-state tasks, and callout boxes (single or side-by-side) that stay readable as raw text. Preview in the browser or terminal and convert to GitHub Markdown."
+    }
+  ]
+}

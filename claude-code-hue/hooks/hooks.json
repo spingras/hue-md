@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/after-write.cjs\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  },
+  "modules": [
+    "./pane.tsx"
+  ]
+}

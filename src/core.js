@@ -115,3 +115,158 @@ export function stripSide (text) {
   t = t.replace(/\s*[│|]\s*$/, '')
   return t.replace(/\s+$/, '')
 }
+
+// ---------------------------------------------------------------- v0.2: split box columns
+
+export function findBoxColumnStarts (line) {
+  const starts = [0]
+  const re = /\s{2,}(?=[┌╭+][─\-])/g
+  let m
+  while ((m = re.exec(line)) !== null) {
+    starts.push(m.index + m[0].length)
+  }
+  return starts
+}
+
+export function parseSplitBoxes (lines) {
+  if (!lines.length) return null
+  const first = lines[0]
+  const starts = findBoxColumnStarts(first)
+  if (starts.length < 2) return null
+
+  const cols = []
+  for (let k = 0; k < starts.length; k++) {
+    const seg = first.slice(starts[k], starts[k + 1]).trimEnd()
+    const top = parseTop(seg)
+    if (!top) return null
+    cols.push({ top, inner: [], closed: false })
+  }
+
+  let endIdx = -1
+  for (let i = 1; i < lines.length; i++) {
+    const text = lines[i]
+    for (let k = 0; k < starts.length; k++) {
+      const seg = (k < starts.length - 1 ? text.slice(starts[k], starts[k + 1]) : text.slice(starts[k])).trimEnd()
+      if (cols[k].closed) {
+        if (seg.trim() !== '') return null
+      } else if (BOX_BOTTOM.test(seg)) {
+        cols[k].closed = true
+      } else if (BOX_SIDE.test(seg)) {
+        cols[k].inner.push(stripSide(seg))
+      } else {
+        return null
+      }
+    }
+    if (cols.every((c) => c.closed)) {
+      endIdx = i
+      break
+    }
+  }
+
+  if (endIdx === -1) return null
+  return { cols, lineCount: endIdx + 1 }
+}
+
+// ---------------------------------------------------------------- v0.2: multi-state tasks
+
+export const TASK_STATES = {
+  ' ': { name: 'todo', color: 'gray', label: 'Todo', icon: '☐', htmlSymbol: '&#9744;' },
+  '-': { name: 'progress', color: 'blue', label: 'In progress', icon: '◐', htmlSymbol: '&#9680;' },
+  '!': { name: 'blocked', color: 'red', label: 'Blocked', icon: '!', htmlSymbol: '!' },
+  '?': { name: 'question', color: 'purple', label: 'Question', icon: '?', htmlSymbol: '?' },
+  x: { name: 'done', color: 'green', label: 'Done', icon: '✔', htmlSymbol: '&#10003;' },
+  X: { name: 'done', color: 'green', label: 'Done', icon: '✔', htmlSymbol: '&#10003;' }
+}
+
+// ---------------------------------------------------------------- v0.2: key caps ([[Key]])
+
+export const KEY_NAMES = new Set([
+  'ctrl', 'control', 'shift', 'alt', 'option', 'opt', 'cmd', 'command', 'super', 'meta', 'win', 'fn',
+  'enter', 'return', 'esc', 'escape', 'tab', 'space', 'spacebar', 'backspace', 'bksp', 'delete', 'del', 'insert', 'ins',
+  'up', 'down', 'left', 'right', 'home', 'end', 'pgup', 'pageup', 'pgdn', 'pagedown',
+  'capslock', 'caps', 'numlock', 'scrolllock', 'prtsc', 'printscreen', 'pause', 'break', 'menu', 'clear',
+  'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f10', 'f11', 'f12',
+  'f13', 'f14', 'f15', 'f16', 'f17', 'f18', 'f19', 'f20', 'f21', 'f22', 'f23', 'f24',
+  'plus', 'minus', 'slash', 'backslash', 'comma', 'period', 'dot', 'semicolon', 'quote', 'backtick', 'tilde'
+])
+
+export const KEY_SYMBOLS = new Set(['⌘', '⌥', '⇧', '⌃', '⏎', '⌫', '⇥', '⎋', '↑', '↓', '←', '→', '/', '?', '+', '-', '=', '~', '`', '[', ']', '\\', ';', "'", ',', '.', '*', '<', '>'])
+
+export function isValidKeycap (raw) {
+  if (!raw || raw.length > 32 || /[\n\r\t]/.test(raw)) return false
+  if (raw !== raw.trim()) return false
+
+  if (!raw.includes('+') || raw === '+') {
+    if (KEY_NAMES.has(raw.toLowerCase())) return true
+    if (KEY_SYMBOLS.has(raw)) return true
+    if (/^[A-Z]$/.test(raw)) return true
+    return false
+  }
+
+  const parts = []
+  let cur = ''
+  for (let i = 0; i < raw.length; i++) {
+    if (raw[i] === '+') {
+      if (cur === '' && i > 0 && raw[i - 1] === '+') {
+        cur = '+'
+      } else if (cur !== '') {
+        parts.push(cur)
+        cur = ''
+      } else {
+        return false
+      }
+    } else {
+      cur += raw[i]
+    }
+  }
+  if (cur !== '') parts.push(cur)
+  if (parts.length < 2) return false
+
+  for (const p of parts) {
+    if (KEY_NAMES.has(p.toLowerCase())) continue
+    if (KEY_SYMBOLS.has(p)) continue
+    if (/^[A-Za-z0-9]$/.test(p)) continue
+    return false
+  }
+  return true
+}
+
+// ---------------------------------------------------------------- v0.2: progress bars ([======....] 60%)
+
+const PROGRESS_RE = /^\[([=#■█]{0,40})([.\-_░ ]{0,40})\]\s*(\d{1,3})%/
+
+export function progressColor (pct) {
+  if (pct >= 100) return 'green'
+  if (pct >= 50) return 'blue'
+  if (pct >= 25) return 'orange'
+  return 'red'
+}
+
+export function matchProgressBar (src, pos, posMax) {
+  if (src.charCodeAt(pos) !== 0x5B /* [ */) return null
+  if (pos > 0 && src.charCodeAt(pos - 1) === 0x5B) return null
+  const slice = src.slice(pos, Math.min(posMax, pos + 52))
+  const m = PROGRESS_RE.exec(slice)
+  if (!m) return null
+  const filled = m[1]
+  const empty = m[2]
+  const totalLen = filled.length + empty.length
+  if (totalLen < 4 || totalLen > 40) return null
+  if (filled.length === 0 && !/[.\-_░]/.test(empty)) return null
+
+  const pct = Number(m[3])
+  if (pct < 0 || pct > 100) return null
+
+  const endPos = pos + m[0].length
+  if (endPos < posMax && (src.charCodeAt(endPos) === 0x28 || src.charCodeAt(endPos) === 0x5B)) return null
+
+  return {
+    raw: m[0],
+    filled: filled.length,
+    empty: empty.length,
+    total: totalLen,
+    pct,
+    color: progressColor(pct),
+    endPos
+  }
+}

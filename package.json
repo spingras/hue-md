@@ -1,7 +1,7 @@
 {
   "name": "hue-md",
-  "version": "0.1.0",
-  "description": "Hue Markdown (.hue.md): readable-raw color spans, backgrounds, and callout boxes for Markdown — parser, CLI, terminal viewer, and GitHub downgrade",
+  "version": "0.2.0",
+  "description": "Hue Markdown (.hue.md): readable-raw color spans, diff spans, keycaps, progress bars, multi-state tasks, and callout boxes (single or side-by-side) — parser, CLI, terminal viewer & slides, and GitHub downgrade",
   "author": "spingras",
   "license": "MIT",
   "repository": {
@@ -38,7 +38,8 @@
   "scripts": {
     "test": "node --test \"test/**/*.test.js\" \"md-hue/test/**/*.test.js\" \"vscode-hue/test/**/*.test.js\" \"github-hue/test/**/*.test.js\"",
     "build:css": "node scripts/build-css.js",
-    "demo": "node scripts/build-hero.js && node scripts/generate-readme-assets.js && node scripts/render-demo.js"
+    "demo": "node scripts/build-hero.js && node scripts/generate-readme-assets.js && node scripts/render-demo.js",
+    "build:claude": "node scripts/build-claude-plugin.js"
   },
   "keywords": [
     "markdown",

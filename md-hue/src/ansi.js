@@ -1,7 +1,8 @@
 // Renders Hue Markdown for a terminal: ANSI truecolor for spans, box-drawing
-// frames for boxes, word wrap that keeps colors intact across lines.
+// frames for boxes and split-box columns, multi-state tasks, keycaps,
+// progress bars, diff spans, and slide decks.
 import MarkdownIt from 'markdown-it'
-import hue, { COLORS } from '../../src/index.js'
+import hue, { COLORS, parseTop, BOX_SIDE, BOX_BOTTOM } from '../../src/index.js'
 
 const ESC = '\x1b['
 
@@ -92,7 +93,31 @@ function inlineRuns (children, ctx) {
       }
       case 'image': runs.push({ text: `[image: ${t.content || t.attrGet('src')}]`, s: { ...top(), dim: true } }); break
       case 'hue_open': push(spanColors(t.meta.style, ctx.theme)); break
-      case 'strong_close': case 'em_close': case 's_close': case 'hue_close': pop(); break
+      case 'hue_diff_open': {
+        const isAdd = t.meta.kind === 'add'
+        const c = isAdd ? COLORS.green[ctx.theme] : COLORS.red[ctx.theme]
+        push({ fg: c.fg, bg: c.bg, strike: !isAdd })
+        break
+      }
+      case 'hue_kbd': {
+        const g = COLORS.gray[ctx.theme]
+        runs.push({ text: `[${t.content}]`, s: { ...top(), b: true, fg: g.fg, bg: g.bg } })
+        break
+      }
+      case 'hue_progress': {
+        const { pct, color } = t.meta
+        const barW = 10
+        const filledW = Math.round((pct / 100) * barW)
+        const emptyW = barW - filledW
+        const fg = COLORS[color][ctx.theme].fg
+        const dimFg = COLORS.gray[ctx.theme].fg
+        if (filledW > 0) runs.push({ text: '━'.repeat(filledW), s: { ...top(), fg, b: true } })
+        if (emptyW > 0) runs.push({ text: '━'.repeat(emptyW), s: { ...top(), fg: dimFg, dim: true } })
+        runs.push({ text: ` ${pct}%`, s: { ...top(), fg, b: true } })
+        break
+      }
+      case 'hue_task_box': break
+      case 'strong_close': case 'em_close': case 's_close': case 'hue_close': case 'hue_diff_close': pop(); break
       default: if (t.content) runs.push({ text: t.content, s: top() })
     }
   }
@@ -235,13 +260,23 @@ function blocks (tokens, ctx, width, { tight = false } = {}) {
         let first = true
         for (let k = 0; k < body.length;) {
           if (body[k].type !== 'list_item_open') { k++; continue }
+          const liToken = body[k]
           const [item, after] = inner(body, k)
-          const marker = ordered ? `${n++}. ` : '• '
+          const taskMeta = liToken.meta?.task
+          let marker
+          let markerStyle
+          if (taskMeta) {
+            marker = `[${taskMeta.icon}] `
+            markerStyle = { fg: COLORS[taskMeta.color][ctx.theme].fg, b: taskMeta.state !== 'todo' }
+          } else {
+            marker = ordered ? `${n++}. ` : '• '
+            markerStyle = { dim: !ordered }
+          }
           const mw = textWidth(marker)
           const loose = item.some((x) => x.type === 'paragraph_open' && !x.hidden)
           const itemLines = blocks(item, ctx, Math.max(1, width - mw), { tight: !loose })
           if (!first && loose) lines.push('')
-          itemLines.forEach((l, idx) => lines.push((idx === 0 ? paint(marker, { dim: !ordered }, ctx) : ' '.repeat(mw)) + l))
+          itemLines.forEach((l, idx) => lines.push((idx === 0 ? paint(marker, markerStyle, ctx) : ' '.repeat(mw)) + l))
           first = false
           k = after
         }
@@ -251,6 +286,43 @@ function blocks (tokens, ctx, width, { tight = false } = {}) {
       case 'table_open': {
         const [body, next] = inner(tokens, i)
         out.push({ lines: table(body, ctx) })
+        i = next; break
+      }
+      case 'hue_columns_open': {
+        const [body, next] = inner(tokens, i)
+        const colBoxes = []
+        for (let k = 0; k < body.length;) {
+          if (body[k].type === 'hue_box_open') {
+            const [boxBody, afterBox] = inner(body, k)
+            colBoxes.push({ open: body[k], body: boxBody })
+            k = afterBox
+          } else {
+            k++
+          }
+        }
+        const gap = 2
+        const colCount = Math.max(1, colBoxes.length)
+        const colW = Math.max(10, Math.floor((width - gap * (colCount - 1)) / colCount))
+        const renderedCols = colBoxes.map(({ open, body: b }) => {
+          let title = null; let rest = b
+          if (b[0]?.type === 'hue_box_title_open') {
+            title = inlineRuns(b[1].children, ctx)
+            rest = b.slice(3)
+          }
+          return boxLines(open, { title, tokens: rest }, ctx, colW)
+        })
+        const maxH = Math.max(0, ...renderedCols.map((c) => c.length))
+        const colWidths = renderedCols.map((c) => Math.max(colW, ...c.map(textWidth)))
+        const zipLines = []
+        for (let r = 0; r < maxH; r++) {
+          const rowParts = renderedCols.map((c, idx) => {
+            const cell = c[r] || ''
+            const pad = Math.max(0, colWidths[idx] - textWidth(cell))
+            return idx < renderedCols.length - 1 ? cell + ' '.repeat(pad) : cell
+          })
+          zipLines.push(rowParts.join(' '.repeat(gap)))
+        }
+        out.push({ lines: zipLines })
         i = next; break
       }
       case 'hue_box_open': {
@@ -290,4 +362,128 @@ export function renderAnsi (src, { width = 80, theme = 'dark', color = true } = 
   const md = createRenderer()
   const ctx = { md, theme, color }
   return blocks(md.parse(src, {}), ctx, width).join('\n') + '\n'
+}
+
+// ------------------------------------------------------------ Terminal Slide Deck Mode
+
+/**
+ * Split a .hue.md document into individual slides on top-level `---` lines
+ * (ignoring `---` inside code fences or Hue boxes).
+ * @param {string} src
+ */
+export function parseSlides (src) {
+  const lines = src.replace(/\r\n/g, '\n').split('\n')
+  const slides = []
+  let current = []
+  let inFence = null
+  let inBox = false
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    const trimmed = line.trimStart()
+
+    const fm = /^(`{3,}|~{3,})(.*)$/.exec(trimmed)
+    if (fm) {
+      if (!inFence) inFence = fm[1]
+      else if (fm[1][0] === inFence[0] && fm[1].length >= inFence.length && fm[2].trim() === '') inFence = null
+      current.push(line)
+      continue
+    }
+    if (inFence) {
+      current.push(line)
+      continue
+    }
+
+    if (!inBox && parseTop(trimmed)) {
+      inBox = true
+      current.push(line)
+      continue
+    }
+    if (inBox) {
+      if (BOX_BOTTOM.test(trimmed)) inBox = false
+      else if (!BOX_SIDE.test(trimmed)) inBox = false
+      current.push(line)
+      continue
+    }
+
+    if (/^ {0,3}-{3,}\s*$/.test(line)) {
+      const prev = current.length ? current[current.length - 1].trim() : ''
+      if (prev === '' || /^#{1,6}\s/.test(prev) || BOX_BOTTOM.test(prev)) {
+        if (current.some((l) => l.trim() !== '')) {
+          slides.push(current.join('\n').trim())
+        }
+        current = []
+        continue
+      }
+    }
+
+    current.push(line)
+  }
+
+  if (current.some((l) => l.trim() !== '') || slides.length === 0) {
+    slides.push(current.join('\n').trim())
+  }
+
+  return slides.map((content, idx) => {
+    const headingMatch = /^#{1,3}\s+(.+)$/m.exec(content)
+    return {
+      index: idx + 1,
+      title: headingMatch ? headingMatch[1].trim() : `Slide ${idx + 1}`,
+      markdown: content
+    }
+  })
+}
+
+/**
+ * Render a Hue Markdown slide deck for the terminal.
+ * @param {string} src
+ * @param {{ width?: number, theme?: 'dark'|'light', color?: boolean, slide?: number|null, minHeight?: number }} [opts]
+ */
+export function renderSlides (src, { width = 80, theme = 'dark', color = true, slide = null, minHeight = 0 } = {}) {
+  const allSlides = parseSlides(src)
+  const total = allSlides.length
+  const selected = slide !== null
+    ? allSlides.filter((s) => s.index === slide)
+    : allSlides
+
+  const ctx = { theme, color }
+  const borderS = { fg: COLORS.blue[theme].fg }
+  const titleS = { fg: COLORS.blue[theme].fg, b: true }
+  const dimS = { fg: COLORS.gray[theme].fg, dim: true }
+  const innerW = Math.max(20, width - 4)
+
+  const renderedDeck = selected.map((s) => {
+    const bodyRaw = renderAnsi(s.markdown, { width: innerW, theme, color }).replace(/\n$/, '')
+    const bodyLines = bodyRaw ? bodyRaw.split('\n') : ['']
+    while (bodyLines.length < minHeight) bodyLines.push('')
+
+    const badgePlain = `[ ${s.index} / ${total} ]`
+    const headerTitle = ` ${s.title} `
+    const dashCount = Math.max(1, width - 6 - textWidth(headerTitle) - badgePlain.length)
+    const topLine =
+      paint('╭─', borderS, ctx) +
+      paint(headerTitle, titleS, ctx) +
+      paint('─'.repeat(dashCount) + ' ', borderS, ctx) +
+      paint(badgePlain, dimS, ctx) +
+      paint(' ─╮', borderS, ctx)
+
+    const framedBody = bodyLines.map((l) => {
+      const pad = Math.max(0, innerW - textWidth(l))
+      return paint('│', borderS, ctx) + ' ' + l + ' '.repeat(pad) + ' ' + paint('│', borderS, ctx)
+    })
+
+    const barW = Math.min(12, Math.max(4, total * 2))
+    const filled = Math.max(1, Math.round((s.index / total) * barW))
+    const empty = Math.max(0, barW - filled)
+    const footerDashes = Math.max(1, width - 5 - barW)
+    const bottomLine =
+      paint('╰' + '─'.repeat(footerDashes) + ' ', borderS, ctx) +
+      paint('━'.repeat(filled), titleS, ctx) +
+      paint('━'.repeat(empty), dimS, ctx) +
+      paint(' ─╯', borderS, ctx)
+
+    return [topLine, ...framedBody, bottomLine].join('\n')
+  })
+
+  return renderedDeck.join('\n\n') + '\n'
 }
