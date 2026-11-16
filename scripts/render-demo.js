@@ -86,7 +86,7 @@ const pageHtml = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Hue MD: color and boxes for Markdown</title>
-<meta name="description" content="Hue Markdown adds colored text and drawn boxes to Markdown. The source stays easy to read as plain text. Try it in your browser.">
+<meta name="description" content="Hue Markdown adds colored text, drawn boxes, task states, key caps and progress bars to Markdown. The source stays easy to read as plain text. Try it in your browser.">
 <style>
 ${css()}
 :root {
@@ -271,7 +271,7 @@ footer a:hover { color: var(--text); }
   <div class="wrap hero">
     <p class="eyebrow">OPEN SOURCE · MIT LICENSE · COMMONMARK COMPATIBLE</p>
     <h1>Color and boxes for Markdown</h1>
-    <p class="lead">Hue Markdown adds colored text and drawn boxes to Markdown. The source stays easy to read as plain text, for people and for AI. Edit the example below to see how it works.</p>
+    <p class="lead">Hue Markdown adds colored text, drawn boxes, task states, key caps and progress bars to Markdown. The source stays easy to read as plain text, for people and for AI. Edit the example below to see how it works.</p>
     <div class="hero-actions">
       <a class="btn btn-primary" href="#install">Install</a>
       <a class="btn" href="${REPO}">Source on GitHub</a>

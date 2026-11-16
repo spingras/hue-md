@@ -32,3 +32,22 @@ Normal prose like {a: 1} or {key: value} stays untouched.
 | - Add `.env` to `.gitignore`
 | - Rotate any key that leaked {!: immediately}
 +--
+
+## New in v0.2
+
+- [x] Spec and tests pass
+- [-] Release notes {+: in progress}
+- [!] Launch post {!: blocked} on review
+- [?] More examples in the playground?
+- [ ] Announce the release
+
+Press [[Ctrl+Shift+V]] in VS Code for the live preview, or [[Esc]] to close it.
+
+Build: [========..] 80% · Tests: [==========] 100%
+
+Changelog: {+: added key caps and progress bars}, {-: removed the old md-hue package}.
+
++-- ok Do this                    +-- warn Avoid this
+| Keep the source readable.       | Raw `<span>` HTML in your notes.
+| Use `ok`, `warn` and `!`.       | A build step for your docs.
++--                               +--

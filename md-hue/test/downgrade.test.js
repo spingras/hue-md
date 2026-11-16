@@ -89,11 +89,20 @@ test('property: every CommonMark 0.31.2 example is returned unchanged', () => {
   assert.deepEqual(changed, [])
 })
 
+// Two v0.2 constructs stay in the output on purpose, because GitHub shows them
+// well as they are: task lists become GitHub checkboxes (`- [ ]`, `- [x]`),
+// which Hue also reads as task states, and text progress bars (`[====..] 60%`)
+// stay as plain text. They are removed before comparing; everything else
+// (spans, boxes, key caps, diffs, fences) must be gone.
+const KEPT_ON_PURPOSE = (md) => md
+  .replace(/^(\s*(?:[-*+]|\d+[.)])) \[[ xX]\] /gm, '$1 ')
+  .replace(/\[[=#■█]*[.\-_░ ]*\] *\d{1,3}%/g, 'BAR')
+
 test('property: no Hue syntax survives a downgrade (all spec examples and the demo)', () => {
   const docs = [...specExamples.map((e) => [`spec example ${e.number}`, e.markdown]), ['demo', read('../../demo/demo.hue.md')]]
   for (const mode of ['auto', 'plain', 'bold', 'latex']) {
     for (const [name, src] of docs) {
-      const out = downgrade(src, { spans: mode })
+      const out = KEPT_ON_PURPOSE(downgrade(src, { spans: mode }))
       assert.equal(withHue.render(out), plain.render(out), `${name} (${mode}) still has Hue syntax:\n${out}`)
     }
   }
