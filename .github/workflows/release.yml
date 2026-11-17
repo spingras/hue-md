@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   release:
@@ -36,3 +37,7 @@ jobs:
         with:
           generate_release_notes: true
           files: dist/release/*
+
+      - name: Publish VS Code extension to Open VSX (Trusted Publisher OIDC)
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        run: npx --yes ovsx@latest publish dist/release/hue-md.vsix --trusted-publishing --skip-duplicate
