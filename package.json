@@ -40,6 +40,7 @@
     "build:css": "node scripts/build-css.js",
     "demo": "node scripts/build-hero.js && node scripts/generate-readme-assets.js && node scripts/render-demo.js",
     "build:screenshots": "node scripts/build-screenshots.js",
+    "build:clip": "node scripts/build-demo-clip.js",
     "build:claude": "node scripts/build-claude-plugin.js"
   },
   "keywords": [

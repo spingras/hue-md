@@ -492,7 +492,7 @@ html, body {
 <body>
 <div class="wrap">
   <div class="head"><h1>Hue MD</h1><span class="badge">.hue.md</span></div>
-  <p class="sub">Color spans, diffs, tasks, key caps, progress bars, and callout boxes that stay readable as plain text</p>
+  <p class="sub">Markdown that shows what matters. Status at a glance, and it still reads fine as plain text.</p>
   <div class="card">
     <div class="pane"><div class="bar">demo.hue.md · plain text, as typed</div><pre class="src">${highlighted}</pre></div>
     <div class="pane"><div class="bar">Rendered by Hue · VS Code, Notepad++, Claude Code, web, terminal</div><div class="out">${md.render(shortSource)}</div></div>
