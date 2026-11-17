@@ -75,7 +75,7 @@ Release progress:
 | npm CLI & library | `npm install -g hue-md` |
 | Claude Code | `/plugin install hue-md --marketplace spingras/hue-md` |
 | VS Code / Cursor | Search `spingras.hue-md` in Extensions |
-| Notepad++ (x64) | Extract `HueMarkdown.dll` to `plugins/HueMarkdown/` |
+| Notepad++ (x64) | Extract the zip and run `install.ps1` |
 
 ```sh
 hue-md view README.hue.md

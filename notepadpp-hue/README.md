@@ -1,4 +1,4 @@
-# Hue Markdown for Notepad++ (`HueMarkdown.dll`)
+# Hue Markdown for Notepad++ (`hue-md.dll`)
 
 Native x64 C++ plugin for Notepad++ providing live Scintilla coloring and HTML preview/downgrade tools for Hue Markdown (`.hue.md`).
 
@@ -23,21 +23,37 @@ Native x64 C++ plugin for Notepad++ providing live Scintilla coloring and HTML p
    - **Enable In-Editor Hue Coloring**: Toggle live Scintilla Hue coloring on/off.
    - **Open Hue Demo Document (`demo.hue.md`)**: Opens `demo/demo.hue.md` directly in Notepad++.
 
-## Quick Start (No Admin / UAC Required)
+## Install from the release zip
+
+The zip contains `install.ps1` and a `hue-md` folder with `hue-md.dll`, `hue-md.cjs` and `demo.hue.md`. The plugin needs all three files in the same folder.
+
+1. Extract the whole zip.
+2. In the extracted folder, right-click `install.ps1` and choose **Run with PowerShell**. It asks for admin rights once and copies the `hue-md` folder to `C:\Program Files\Notepad++\plugins\hue-md\`.
+3. Restart Notepad++ and choose **Plugins → Hue Markdown**.
+
+For a portable Notepad++, run the script with your own plugins folder, no admin needed:
+
+```powershell
+.\install.ps1 -TargetDir "D:\Notepad++\plugins\hue-md"
+```
+
+Or copy the `hue-md` folder into the `plugins` folder yourself.
+
+## From the repository
+
+### Quick start (no admin needed)
 
 ```powershell
 .\notepadpp-hue\run-local.ps1
 ```
 
-This builds `HueMarkdown.dll` (if needed), stages a local portable Notepad++ instance in `%LOCALAPPDATA%\Notepad++Hue` with `HueMarkdown.dll` pre-installed, and opens `demo/demo.hue.md`.
+This builds `hue-md.dll` (if needed), sets up a portable Notepad++ in `%LOCALAPPDATA%\Notepad++Hue` with the plugin installed, and opens `demo/demo.hue.md`.
 
-## Install into System Notepad++ (`C:\Program Files\Notepad++`)
+### Install into Notepad++ in Program Files
 
-Either:
-- Run `.\notepadpp-hue\install-system.ps1` (prompts for Windows UAC elevation once to copy `HueMarkdown.dll` into `C:\Program Files\Notepad++\plugins\HueMarkdown\`), or
-- In Notepad++, choose **Settings → Import → Import plugin(s)...** and select `notepadpp-hue\dist\HueMarkdown\HueMarkdown.dll`.
+Run `.\notepadpp-hue\install-system.ps1`. It asks for admin rights once and copies `hue-md.dll` into `C:\Program Files\Notepad++\plugins\hue-md\`.
 
-## Build from Source
+### Build from source
 
 ```powershell
 .\notepadpp-hue\build.ps1
