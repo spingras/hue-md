@@ -1,70 +1,81 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 390" width="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 420" width="100%">
   <defs>
     <style>
       .sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
       .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
     </style>
   </defs>
-  <rect x="1" y="1" width="1078" height="388" rx="10" fill="#1e1e1e" stroke="#333333" stroke-width="1.5"/>
+  <rect x="1" y="1" width="1078" height="418" rx="10" fill="#1e1e1e" stroke="#333333" stroke-width="1.5"/>
   <!-- Top Tab Bar -->
   <rect x="1" y="1" width="1078" height="36" rx="10" fill="#252526" stroke="#333333"/>
   <circle cx="22" cy="19" r="5.5" fill="#ff5f56"/>
   <circle cx="40" cy="19" r="5.5" fill="#ffbd2e"/>
   <circle cx="58" cy="19" r="5.5" fill="#27c93f"/>
   <text x="90" y="24" class="sans" font-size="12.5" font-weight="600" fill="#d4d4d4">demo.hue.md</text>
-  <line x1="540" y1="1" x2="540" y2="389" stroke="#333333" stroke-width="1.5"/>
+  <line x1="540" y1="1" x2="540" y2="419" stroke="#333333" stroke-width="1.5"/>
   <text x="562" y="24" class="sans" font-size="12.5" font-weight="600" fill="#d4d4d4">Preview demo.hue.md (Ctrl+Shift+V)</text>
 
   <!-- Left Editor Pane -->
-  <g class="mono" font-size="12.5">
-    <text x="20" y="68" fill="#858585">1</text>
-    <text x="46" y="68" fill="#58a6ff" font-weight="700"># Hue Markdown</text>
+  <g class="mono" font-size="12.2">
+    <text x="20" y="66" fill="#858585">1</text>
+    <text x="46" y="66" fill="#58a6ff" font-weight="700"># Hue Markdown (v0.2)</text>
 
-    <text x="20" y="94" fill="#858585">2</text>
+    <text x="20" y="92" fill="#858585">2</text>
+    <rect x="90" y="77" width="96" height="20" rx="3" fill="#0f2e1c"/>
+    <rect x="278" y="77" width="80" height="20" rx="3" fill="#3b2410"/>
+    <rect x="430" y="77" width="85" height="20" rx="3" fill="#3d1614"/>
+    <text x="46" y="92" fill="#d4d4d4">Build: <tspan fill="#3fb950">{ok: passing}</tspan> · Coverage: <tspan fill="#ffa657">{warn: 71%}</tspan> · Deploy: <tspan fill="#ff7b72">{!: blocked}</tspan></text>
+
     <text x="20" y="118" fill="#858585">3</text>
-    <rect x="92" y="103" width="100" height="20" rx="3" fill="#0f2e1c"/>
-    <rect x="285" y="103" width="84" height="20" rx="3" fill="#3b2410"/>
-    <rect x="442" y="103" width="85" height="20" rx="3" fill="#3d1614"/>
-    <text x="46" y="118" fill="#d4d4d4">Build: <tspan fill="#3fb950">{ok: passing}</tspan> · Coverage: <tspan fill="#ffa657">{warn: 71%}</tspan> · Deploy: <tspan fill="#ff7b72">{!: blocked}</tspan></text>
+    <text x="46" y="118" fill="#d4d4d4">Diff: <tspan fill="#3fb950">{+: added split boxes}</tspan> · <tspan fill="#ff7b72" text-decoration="line-through">{-: old spans}</tspan></text>
 
-    <text x="20" y="146" fill="#858585">4</text>
-    <text x="20" y="170" fill="#858585">5</text>
-    <text x="46" y="170" fill="#58a6ff" font-weight="700">+-- info Effortless Boxes</text>
-    <text x="20" y="194" fill="#858585">6</text>
-    <text x="46" y="194" fill="#d4d4d4">| Start with `+--` and `info`, `ok`, `note`, `warn`, or `!`</text>
-    <text x="20" y="218" fill="#858585">7</text>
-    <text x="46" y="218" fill="#d4d4d4">| Press Enter to auto-continue `| ` on the next line</text>
-    <text x="20" y="242" fill="#858585">8</text>
-    <text x="46" y="242" fill="#858585">+--</text>
+    <text x="20" y="144" fill="#858585">4</text>
+    <text x="46" y="144" fill="#d4d4d4">Preview: <tspan fill="#58a6ff">[[Ctrl+Shift+V]]</tspan> · <tspan fill="#3fb950">[========..] 80%</tspan></text>
 
-    <text x="20" y="270" fill="#858585">9</text>
-    <text x="14" y="294" fill="#858585">10</text>
-    <text x="46" y="294" fill="#ff7b72" font-weight="700">+-- ! Never Commit Secrets</text>
-    <text x="14" y="318" fill="#858585">11</text>
-    <rect x="336" y="303" width="122" height="20" rx="3" fill="#3d1614"/>
-    <text x="46" y="318" fill="#d4d4d4">| Rotate any leaked key <tspan fill="#ff7b72">{!: immediately}</tspan>.</text>
-    <text x="14" y="342" fill="#858585">12</text>
-    <text x="46" y="342" fill="#858585">+--</text>
+    <text x="20" y="174" fill="#858585">5</text>
+    <text x="46" y="174" fill="#d4d4d4">- <tspan fill="#3fb950" font-weight="700">[x]</tspan> Ship parser · - <tspan fill="#58a6ff" font-weight="700">[-]</tspan> Live preview · - <tspan fill="#ff7b72" font-weight="700">[!]</tspan> Blocker</text>
+
+    <text x="20" y="206" fill="#858585">6</text>
+    <text x="46" y="206"><tspan fill="#3fb950" font-weight="700">+-- ok Do This</tspan>              <tspan fill="#ffa657" font-weight="700">+-- warn Avoid This</tspan></text>
+    <text x="20" y="230" fill="#858585">7</text>
+    <text x="46" y="230" fill="#d4d4d4"><tspan fill="#3fb950">|</tspan> Keep source readable.     <tspan fill="#ffa657">|</tspan> Raw &lt;span&gt; HTML.</text>
+    <text x="20" y="254" fill="#858585">8</text>
+    <text x="46" y="254"><tspan fill="#3fb950">+--</tspan>                         <tspan fill="#ffa657">+--</tspan></text>
+
+    <text x="20" y="286" fill="#858585">9</text>
+    <text x="46" y="286" fill="#ff7b72" font-weight="700">+-- ! Never Commit Secrets</text>
+    <text x="14" y="310" fill="#858585">10</text>
+    <rect x="330" y="295" width="118" height="20" rx="3" fill="#3d1614"/>
+    <text x="46" y="310" fill="#d4d4d4"><tspan fill="#ff7b72">|</tspan> Rotate any leaked key <tspan fill="#ff7b72">{!: immediately}</tspan>.</text>
+    <text x="14" y="334" fill="#858585">11</text>
+    <text x="46" y="334" fill="#ff7b72">+--</text>
   </g>
 
   <!-- Right Live Preview Pane -->
   <g class="sans" fill="#d4d4d4">
-    <text x="564" y="74" font-size="19" font-weight="700">Hue Markdown</text>
-    <line x1="564" y1="84" x2="1052" y2="84" stroke="#333333"/>
+    <text x="564" y="70" font-size="18" font-weight="700">Hue Markdown (v0.2)</text>
+    <line x1="564" y1="80" x2="1052" y2="80" stroke="#333333"/>
 
-    <text x="564" y="114" font-size="14">
+    <text x="564" y="106" font-size="13.5">
       Build: <tspan fill="#3fb950" font-weight="600">passing</tspan> · Coverage: <tspan fill="#ffa657" font-weight="600">71%</tspan> · Deploy: <tspan fill="#ff7b72" font-weight="600">blocked</tspan>
     </text>
+    <text x="564" y="130" font-size="13.5">
+      Diff: <tspan fill="#3fb950">added split boxes</tspan> · <tspan fill="#ff7b72" text-decoration="line-through">old spans</tspan>
+    </text>
 
-    <rect x="564" y="140" width="488" height="86" rx="6" fill="#0f2444"/>
-    <rect x="564" y="140" width="4" height="86" rx="2" fill="#58a6ff"/>
-    <text x="580" y="164" font-size="14" font-weight="700" fill="#58a6ff">Effortless Boxes</text>
-    <text x="580" y="188" font-size="13.5">Start with <tspan class="mono">+--</tspan> and <tspan class="mono">info</tspan>, <tspan class="mono">ok</tspan>, <tspan class="mono">note</tspan>, <tspan class="mono">warn</tspan>, or <tspan class="mono">!</tspan></text>
-    <text x="580" y="210" font-size="13.5">Press Enter to auto-continue <tspan class="mono">| </tspan> on the next line</text>
+    <rect x="564" y="192" width="236" height="68" rx="6" fill="#0f2e1c"/>
+    <rect x="564" y="192" width="4" height="68" rx="2" fill="#3fb950"/>
+    <text x="578" y="216" font-size="13.5" font-weight="700" fill="#3fb950">Do This</text>
+    <text x="578" y="240" font-size="13">Keep source readable.</text>
 
-    <rect x="564" y="246" width="488" height="68" rx="6" fill="#3d1614"/>
-    <rect x="564" y="246" width="4" height="68" rx="2" fill="#ff7b72"/>
-    <text x="580" y="270" font-size="14" font-weight="700" fill="#ff7b72">Never Commit Secrets</text>
-    <text x="580" y="294" font-size="13.5">Rotate any leaked key <tspan fill="#ff7b72" font-weight="700">immediately</tspan>.</text>
+    <rect x="816" y="192" width="236" height="68" rx="6" fill="#3b2410"/>
+    <rect x="816" y="192" width="4" height="68" rx="2" fill="#ffa657"/>
+    <text x="830" y="216" font-size="13.5" font-weight="700" fill="#ffa657">Avoid This</text>
+    <text x="830" y="240" font-size="13">Raw &lt;span&gt; HTML.</text>
+
+    <rect x="564" y="276" width="488" height="68" rx="6" fill="#3d1614"/>
+    <rect x="564" y="276" width="4" height="68" rx="2" fill="#ff7b72"/>
+    <text x="580" y="300" font-size="13.5" font-weight="700" fill="#ff7b72">Never Commit Secrets</text>
+    <text x="580" y="324" font-size="13">Rotate any leaked key <tspan fill="#ff7b72" font-weight="700">immediately</tspan>.</text>
   </g>
 </svg>

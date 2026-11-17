@@ -2,6 +2,20 @@
 
 All notable changes to the `hue-md` extension are documented in this file.
 
+## [0.2.2] - 2026-11-17
+
+### Fixed
+- Command Palette now shows all four `Hue:` commands (`Open Side-by-Side Preview`, `Insert Box...`, `Wrap Selection in Box...`, and `Convert to GitHub Alert Markdown (.md)`)
+- Editor decorations now highlight `{!: ...}` danger spans, `#hex` colors, inline diff spans (`{+:}` / `{-:}`), multi-state tasks, key caps, progress bars, and side-by-side split box borders
+- Built-in VS Code Markdown preview stylesheet (`media/hue.css`) synced with all v0.2 rules and dark-mode selectors
+- Box `Enter` line continuation after box headers and auto-closing (`+--`) on empty `| ` lines
+- Updated Marketplace screenshot to showcase all v0.2 syntax features
+
+## [0.2.1] - 2026-11-16
+
+### Changed
+- Updated Marketplace README and CHANGELOG for v0.2 features
+
 ## [0.2.0] - 2026-11-16
 
 ### Added

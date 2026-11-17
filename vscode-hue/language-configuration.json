@@ -31,10 +31,31 @@
   },
   "onEnterRules": [
     {
-      "beforeText": "^\\s*(\\||│)\\s+.+",
+      "beforeText": "^\\s*\\+(?:--+|─+)(?:\\s+.*)?$",
       "action": {
         "indentAction": "none",
         "appendText": "| "
+      }
+    },
+    {
+      "beforeText": "^\\s*[┌╭](?:─+|--+)(?:\\s+.*)?$",
+      "action": {
+        "indentAction": "none",
+        "appendText": "│ "
+      }
+    },
+    {
+      "beforeText": "^\\s*\\|\\s+\\S.*$",
+      "action": {
+        "indentAction": "none",
+        "appendText": "| "
+      }
+    },
+    {
+      "beforeText": "^\\s*│\\s+\\S.*$",
+      "action": {
+        "indentAction": "none",
+        "appendText": "│ "
       }
     }
   ]

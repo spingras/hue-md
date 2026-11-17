@@ -8,7 +8,7 @@ Hue MD adds color spans, diff spans, key caps, progress bars, multi-state tasks,
 
 ---
 
-## What is new in v0.2.0
+## What is new in v0.2
 
 - Side-by-side split boxes: place two or more boxes on the same lines separated by at least two spaces to render equal-width columns with a 16 px gap.
 - Multi-state tasks: use `- [ ]` (todo), `- [-]` (in progress), `- [!]` (blocked), `- [?]` (question), and `- [x]` (done).

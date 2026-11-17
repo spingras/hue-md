@@ -42,7 +42,7 @@
   --hue-gray-bg: #21262d;
   }
 }
-:root[data-theme="dark"] {
+:root[data-theme="dark"], body.vscode-dark, body.vscode-high-contrast {
   --hue-text: #e6edf3;
   --hue-neutral-bg: #21262d;
   --hue-red: #ff7b72;
@@ -100,6 +100,27 @@
 .hue-bg-gray { background: var(--hue-gray-bg); padding: 0 .2em; border-radius: 3px; }
 .hue-box-gray { border-left-color: var(--hue-gray); background: var(--hue-gray-bg); }
 .hue-box-gray > .hue-box-title { color: var(--hue-gray); }
+.hue-task-list { list-style: none; padding-left: 0.4em; }
+.hue-task { display: flex; align-items: baseline; gap: 0.45em; margin: 0.25em 0; }
+.hue-task-box { display: inline-flex; align-items: center; justify-content: center; width: 1.25em; height: 1.25em; border-radius: 4px; font-size: 0.85em; font-weight: 700; font-variant-emoji: text; flex-shrink: 0; border: 1.5px solid var(--hue-gray); color: var(--hue-gray); background: var(--hue-gray-bg); }
+.hue-task-box-progress { border-color: var(--hue-blue); color: var(--hue-blue); background: var(--hue-blue-bg); }
+.hue-task-box-blocked { border-color: var(--hue-red); color: var(--hue-red); background: var(--hue-red-bg); }
+.hue-task-box-question { border-color: var(--hue-purple); color: var(--hue-purple); background: var(--hue-purple-bg); }
+.hue-task-box-done { border-color: var(--hue-green); color: var(--hue-green); background: var(--hue-green-bg); }
+.hue-columns { display: -ms-flexbox; display: flex; -ms-flex-wrap: nowrap; flex-wrap: nowrap; margin: 1em 0; align-items: stretch; }
+.hue-columns > .hue-box { -ms-flex: 1 1 0px; flex: 1 1 0px; margin: 0; box-sizing: border-box; }
+.hue-columns > .hue-box + .hue-box { margin-left: 16px; }
+.hue-kbd { display: inline-block; padding: 0.1em 0.42em; font-size: 0.84em; line-height: 1.2; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--hue-text); background: var(--hue-neutral-bg); border: 1px solid var(--hue-gray); border-bottom-width: 2px; border-radius: 4px; }
+.hue-progress { display: inline-flex; align-items: center; gap: 0.45em; vertical-align: middle; font-variant-numeric: tabular-nums; }
+.hue-progress-track { display: inline-block; width: 5.5em; height: 0.55em; background: var(--hue-neutral-bg); border-radius: 999px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--hue-gray) 35%, transparent); }
+.hue-progress-fill { display: block; height: 100%; border-radius: 999px; background: var(--hue-blue); }
+.hue-progress-green .hue-progress-fill { background: var(--hue-green); }
+.hue-progress-blue .hue-progress-fill { background: var(--hue-blue); }
+.hue-progress-orange .hue-progress-fill { background: var(--hue-orange); }
+.hue-progress-red .hue-progress-fill { background: var(--hue-red); }
+.hue-progress-label { font-size: 0.85em; font-weight: 600; color: var(--hue-text); }
+ins.hue-diff-add { color: var(--hue-green); background: var(--hue-green-bg); text-decoration: none; padding: 0 0.22em; border-radius: 3px; }
+del.hue-diff-del { color: var(--hue-red); background: var(--hue-red-bg); text-decoration: line-through; padding: 0 0.22em; border-radius: 3px; }
 
 .frame { box-sizing: border-box; width: 1200px; height: 470px; padding: 18px; display: flex; gap: 18px;
   background: #0d1117; color: #e6edf3; font: 14px/1.45 -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; border: 1px solid #30363d; border-radius: 12px; }

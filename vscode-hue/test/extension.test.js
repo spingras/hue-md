@@ -18,6 +18,20 @@ test('VS Code extension manifest is valid and complete', () => {
   assert.ok(pkg.contributes.grammars.some(g => g.language === 'hue-markdown'))
   assert.ok(pkg.contributes['markdown.markdownItPlugins'])
   assert.ok(pkg.contributes['markdown.previewStyles'].includes('./media/hue.css'))
+  assert.equal(pkg.contributes.commands.length, 4)
+  // Verify no broken resourceExtname == .hue.md anywhere in menus/keybindings
+  const rawPkg = readFileSync(resolve(__dirname, '../package.json'), 'utf8')
+  assert.ok(!rawPkg.includes('resourceExtname == .hue.md'))
+  // Verify media/hue.css has v0.2 styles and valid dark-mode selectors
+  const mediaCss = readFileSync(resolve(__dirname, '../media/hue.css'), 'utf8')
+  assert.ok(mediaCss.includes('.hue-columns'))
+  assert.ok(mediaCss.includes('.hue-task-box'))
+  assert.ok(mediaCss.includes('.hue-kbd'))
+  assert.ok(mediaCss.includes('.hue-progress'))
+  assert.ok(mediaCss.includes('ins.hue-diff-add'))
+  assert.ok(mediaCss.includes('del.hue-diff-del'))
+  assert.ok(mediaCss.includes('body.vscode-dark'))
+  assert.ok(!mediaCss.includes(',\n@media'))
   assert.ok(existsSync(resolve(__dirname, '../dist/extension.cjs')))
   assert.ok(existsSync(resolve(__dirname, '../media/hue.css')))
   assert.ok(existsSync(resolve(__dirname, '../media/icon.png')))
@@ -89,10 +103,19 @@ test('VS Code TextMate grammar patterns match Hue tokens', () => {
   assert.ok(botPattern.test('+------------------------------------+'))
   assert.ok(botPattern.test('╰────────────────────────────────────╯'))
 
-  // Box side regex test
-  const sidePattern = new RegExp(grammar.repository['hue-box-side'].match)
+  // Box side regex test (single and split columns)
+  const sidePattern = new RegExp(grammar.repository['hue-box-side'].match, 'g')
   assert.ok(sidePattern.test('│ Keep `.env` files out of git.'))
+  sidePattern.lastIndex = 0
   assert.ok(sidePattern.test('| ASCII boxes work too:'))
+  const splitSideMatches = [...'| Left column   | Right column'.matchAll(new RegExp(grammar.repository['hue-box-side'].match, 'g'))]
+  assert.equal(splitSideMatches.length, 2)
+
+  // Split box top & bottom regex test
+  const splitTopMatches = [...'+-- ok Left Title   +-- warn Right Title'.matchAll(new RegExp(grammar.repository['hue-box-top'].match, 'g'))]
+  assert.equal(splitTopMatches.length, 2)
+  const splitBotMatches = [...'+--                 +--'.matchAll(new RegExp(grammar.repository['hue-box-bottom'].match, 'g'))]
+  assert.equal(splitBotMatches.length, 2)
 
   // Inline span regex test
   const spanPattern = new RegExp(grammar.repository['hue-inline-span'].match)

@@ -31,7 +31,7 @@
   ],
   "repository": {
     "hue-box-top": {
-      "match": "^\\s*(?:(┌|╭|\\+)(─+|-+))\\s*(?:([!a-zA-Z#][a-zA-Z0-9_\\-#]*))?(?:\\s+([^─\\-│|\r\n]+?))?\\s*(?:(─+|-+)(┐|╮|\\+))?\\s*$",
+      "match": "(?:^\\s*|(?<=\\s{2}))(?:(┌|╭|\\+)(─+|-+))\\s*(?:([!a-zA-Z#][a-zA-Z0-9_\\-#]*))?(?:\\s+([^─\\-│|\r\n]+?))?\\s*(?:(─+|-+)(┐|╮|\\+))?(?=\\s{2,}(?:┌|╭|\\+)(?:─|--)|\\s*$)",
       "captures": {
         "1": { "name": "punctuation.definition.border.corner.hue" },
         "2": { "name": "punctuation.definition.border.line.hue" },
@@ -42,7 +42,7 @@
       }
     },
     "hue-box-bottom": {
-      "match": "^\\s*(?:(└|╰|\\+)(─+|-+)(┘|╯|\\+)?)\\s*$",
+      "match": "(?:^\\s*|(?<=\\s{2}))(?:(└|╰|\\+)(─+|-+)(┘|╯|\\+)?)(?=\\s{2,}(?:└|╰|\\+)(?:─|--)|\\s*$)",
       "captures": {
         "1": { "name": "punctuation.definition.border.corner.hue" },
         "2": { "name": "punctuation.definition.border.line.hue" },
@@ -50,7 +50,7 @@
       }
     },
     "hue-box-side": {
-      "match": "^\\s*([│|])",
+      "match": "(?:^\\s*|(?<=\\s{2}))([│|])(?=\\s|$)",
       "captures": {
         "1": { "name": "punctuation.definition.border.side.hue" }
       }

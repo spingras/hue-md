@@ -15,22 +15,25 @@ const { default: MarkdownIt } = await import(pathToFileURL(join(repo, 'node_modu
 const { default: hue, css } = await imp('src/index.js')
 const { PAGE, COLORS } = await imp('src/palette.js')
 
-const SOURCE = `# Release notes
+const SOURCE = `# Release notes (v0.2)
 
-Build: {ok: passing} · Coverage: {warn: 71%} · Deploy: {!: blocked}
+Build: {ok: passing} · Coverage: {warn: 71%} · Deploy: {!: blocked}  
+Diff: {+: added split boxes & tasks} · {-: removed HTML spans}  
+Preview: [[Ctrl+Shift+V]] · Progress: [========..] 80%
 
-Mark {bg-yellow: key phrases}, add {blue bg-gray: a badge},
-or pick an exact {#c0ffee bg-#333333: hex color}.
-Prose like {a: 1} stays untouched.
+- [x] Ship core v0.2 parser & CLI slide deck
+- [-] Update editor previews ({blue bg-gray: VS Code & Notepad++})
+- [!] Resolve {!: release blocker} before tagging
+- [?] Confirm keycap downgrade
+- [ ] Announce the release
 
-+-- info Pro tip
-| Start a box with \`+--\` and a color word.
-| No right border to keep aligned.
-+--
++-- ok Do this                      +-- warn Avoid this
+| Keep raw source readable.         | Pollute notes with \`<span>\` HTML.
+| Use \`ok\`, \`warn\`, and \`!\`.        | Trap docs in a JSX build step.
++--                                 +--
 
 +-- ! Never commit secrets
-| Keep \`.env\` out of git and rotate
-| leaked keys {!: immediately}.
+| Keep \`.env\` out of git and rotate leaked keys {!: immediately}.
 +--`
 
 const BOXES_SOURCE = `+-- info Effortless Boxes
@@ -55,7 +58,7 @@ const BOXES_SOURCE = `+-- info Effortless Boxes
 +--`
 
 const WIDTH = 1200
-const HEIGHT = 480
+const HEIGHT = 560
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 const md = new MarkdownIt({ xhtmlOut: true }).use(hue)
@@ -73,19 +76,22 @@ function hero (mode) {
 <div xmlns="http://www.w3.org/1999/xhtml" class="frame">
 <style>
 ${css()}
-.frame { box-sizing: border-box; width: ${WIDTH}px; height: ${HEIGHT}px; padding: 20px; display: flex; gap: 20px;
-  background: ${page.bg}; color: ${page.text}; font: 15px/1.5 ${sans}; border: 1px solid ${line}; border-radius: 12px; }
+.frame { box-sizing: border-box; width: ${WIDTH}px; height: ${HEIGHT}px; padding: 18px; display: flex; gap: 18px;
+  background: ${page.bg}; color: ${page.text}; font: 14.5px/1.48 ${sans}; border: 1px solid ${line}; border-radius: 12px; }
 .pane { flex: 1; min-width: 0; border: 1px solid ${line}; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
-.bar { padding: 8px 14px; font: 600 12px/1.4 ${sans}; color: ${muted}; background: ${pane}; border-bottom: 1px solid ${line}; letter-spacing: .02em; }
-.src { margin: 0; padding: 14px 16px; flex: 1; background: ${pane}; font: 13px/1.55 ${mono}; white-space: pre-wrap; color: ${page.text}; }
-.out { padding: 4px 22px 14px; flex: 1; }
-.out h1 { font-size: 1.6em; margin: .5em 0 .4em; padding-bottom: .25em; border-bottom: 1px solid ${line}; }
-.out p { margin: .6em 0; }
+.bar { padding: 7px 14px; font: 600 12px/1.4 ${sans}; color: ${muted}; background: ${pane}; border-bottom: 1px solid ${line}; letter-spacing: .02em; }
+.src { margin: 0; padding: 12px 16px; flex: 1; background: ${pane}; font: 12.4px/1.48 ${mono}; white-space: pre-wrap; color: ${page.text}; }
+.out { padding: 4px 20px 12px; flex: 1; }
+.out h1 { font-size: 1.45em; margin: .4em 0 .35em; padding-bottom: .22em; border-bottom: 1px solid ${line}; }
+.out p { margin: .45em 0; }
+.out ul.hue-task-list { margin: .5em 0; }
 .out code { font: .88em ${mono}; background: ${pane}; padding: .1em .35em; border-radius: 4px; }
-.out .hue-box { margin: .8em 0; }
+.out .hue-box { margin: .6em 0; padding: .48em .85em; }
+.out .hue-columns { margin: .6em 0; }
+.out .hue-columns > .hue-box { margin: 0; padding: .48em .85em; }
 </style>
 <div class="pane"><div class="bar">release.hue.md · plain text, as typed</div><pre class="src">${esc(SOURCE)}</pre></div>
-<div class="pane"><div class="bar">Rendered by Hue · VS Code, Obsidian, web, terminal</div><div class="out">${md.render(SOURCE)}</div></div>
+<div class="pane"><div class="bar">Rendered by Hue · VS Code, Notepad++, Claude Code, web, terminal</div><div class="out">${md.render(SOURCE)}</div></div>
 </div>
 </foreignObject>
 </svg>

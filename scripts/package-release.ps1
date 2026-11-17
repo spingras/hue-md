@@ -16,20 +16,16 @@ New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
 Copy-Item (Join-Path $repoRoot "dist\hue-md.css") (Join-Path $releaseDir "hue-md.css") -Force
 
 # 2. VS Code Extension (hue-md-*.vsix)
-$vsixFiles = @(Get-ChildItem -Path (Join-Path $repoRoot "vscode-hue") -Filter "hue-md-*.vsix" -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending)
-if ($vsixFiles.Count -eq 0) {
-  Push-Location (Join-Path $repoRoot "vscode-hue")
-  & node build.js
-  & npx --yes @vscode/vsce package --no-dependencies
-  Pop-Location
-  $vsixFiles = @(Get-ChildItem -Path (Join-Path $repoRoot "vscode-hue") -Filter "hue-md-*.vsix" | Sort-Object LastWriteTime -Descending)
-}
-foreach ($v in $vsixFiles) {
-  Copy-Item $v.FullName (Join-Path $releaseDir $v.Name) -Force
-}
+$vscodePkg = Get-Content (Join-Path $repoRoot "vscode-hue\package.json") -Raw | ConvertFrom-Json
+$targetVsix = Join-Path $repoRoot ("vscode-hue\hue-md-" + $vscodePkg.version + ".vsix")
+Push-Location (Join-Path $repoRoot "vscode-hue")
+& node build.js
+& npx --yes @vscode/vsce package --no-dependencies -o $targetVsix
+Pop-Location
+Copy-Item $targetVsix (Join-Path $releaseDir (Split-Path $targetVsix -Leaf)) -Force
 # A copy without the version in its name, so releases/latest/download/hue-md.vsix
 # (the README's link) keeps working for every release.
-Copy-Item $vsixFiles[0].FullName (Join-Path $releaseDir "hue-md.vsix") -Force
+Copy-Item $targetVsix (Join-Path $releaseDir "hue-md.vsix") -Force
 
 # 3. Notepad++ x64 Plugin (hue-md-npp-x64.zip)
 $nppDll = Join-Path $repoRoot "notepadpp-hue\dist\hue-md\hue-md.dll"

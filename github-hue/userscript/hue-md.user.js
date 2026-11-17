@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Hue MD for GitHub
 // @namespace    https://spingras.github.io/hue-md/
-// @version      0.1.0
+// @version      0.2.2
 // @description  Renders live Hue MD color spans, badges, and styled callout boxes on GitHub
 // @author       spingras
 // @match        https://github.com/*

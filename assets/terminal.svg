@@ -1,30 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 340" width="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 450" width="100%">
   <defs>
     <style>
       .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
     </style>
   </defs>
-  <rect x="1" y="1" width="918" height="338" rx="10" fill="#0d1117" stroke="#30363d" stroke-width="1.5"/>
+  <rect x="1" y="1" width="918" height="448" rx="10" fill="#0d1117" stroke="#30363d" stroke-width="1.5"/>
   <rect x="1" y="1" width="918" height="36" rx="10" fill="#161b22" stroke="#30363d"/>
   <circle cx="22" cy="19" r="5.5" fill="#ff5f56"/>
   <circle cx="40" cy="19" r="5.5" fill="#ffbd2e"/>
   <circle cx="58" cy="19" r="5.5" fill="#27c93f"/>
   <text x="460" y="24" text-anchor="middle" class="mono" font-size="12.5" fill="#8b949e">hue-md view demo/demo.hue.md (24-bit ANSI Truecolor)</text>
 
-  <g class="mono" font-size="13.5" fill="#e6edf3">
-    <text x="26" y="66"><tspan fill="#3fb950">$</tspan> hue-md view demo/demo.hue.md</text>
-    <text x="26" y="96" font-weight="700">Hue Markdown</text>
-    <text x="26" y="122">Build: <tspan fill="#3fb950">passing</tspan> · Coverage: <tspan fill="#ffa657">71%</tspan> · Deploy: <tspan fill="#ff7b72">blocked</tspan></text>
+  <g class="mono" font-size="13.2" fill="#e6edf3">
+    <text x="26" y="64"><tspan fill="#3fb950">$</tspan> hue-md view demo/demo.hue.md</text>
+    <text x="26" y="92" font-weight="700">Hue Markdown (v0.2)</text>
+    <text x="26" y="116">Build: <tspan fill="#3fb950">passing</tspan> · Coverage: <tspan fill="#ffa657">71%</tspan> · Deploy: <tspan fill="#ff7b72">blocked</tspan></text>
+    <text x="26" y="138">Diff: <tspan fill="#3fb950">+ added split boxes &amp; tasks</tspan> · <tspan fill="#ff7b72" text-decoration="line-through">- removed HTML spans</tspan></text>
+    <text x="26" y="160">Shortcut: <tspan fill="#e6edf3" font-weight="700">[Ctrl+Shift+V]</tspan> · Progress: <tspan fill="#3fb950">████████</tspan><tspan fill="#8b949e">░░</tspan> <tspan font-weight="700">80%</tspan></text>
 
-    <!-- Unicode box 1 -->
-    <text x="26" y="156" fill="#58a6ff">┌─ <tspan font-weight="700">Effortless Boxes</tspan> ───────────────────────────────────────────────┐</text>
-    <text x="26" y="178"><tspan fill="#58a6ff">│</tspan> Start with +-- followed by info, ok, note, warn, or !            <tspan fill="#58a6ff">│</tspan></text>
-    <text x="26" y="200"><tspan fill="#58a6ff">│</tspan> Every | line automatically starts on a new line                  <tspan fill="#58a6ff">│</tspan></text>
-    <text x="26" y="222" fill="#58a6ff">└──────────────────────────────────────────────────────────────────┘</text>
+    <!-- Multi-state tasks -->
+    <text x="26" y="190"><tspan fill="#3fb950" font-weight="700">[✓]</tspan> Ship core v0.2 parser &amp; CLI slide deck</text>
+    <text x="26" y="210"><tspan fill="#58a6ff" font-weight="700">[▸]</tspan> Verify side-by-side editor previews</text>
+    <text x="26" y="230"><tspan fill="#ff7b72" font-weight="700">[!]</tspan> Resolve <tspan fill="#ff7b72">release blocker</tspan> before tagging</text>
+    <text x="26" y="250"><tspan fill="#d2a8ff" font-weight="700">[?]</tspan> Confirm keycap downgrade · <tspan fill="#8b949e">[ ]</tspan> Announce release</text>
 
-    <!-- Unicode box 2 -->
-    <text x="26" y="256" fill="#ff7b72">┌─ <tspan font-weight="700">Never Commit Secrets</tspan> ───────────────────────────────────────────┐</text>
-    <text x="26" y="278"><tspan fill="#ff7b72">│</tspan> Keep .env files out of git and rotate leaked keys <tspan fill="#ff7b72" font-weight="700">immediately</tspan>.   <tspan fill="#ff7b72">│</tspan></text>
-    <text x="26" y="300" fill="#ff7b72">└──────────────────────────────────────────────────────────────────┘</text>
+    <!-- Side-by-side split boxes -->
+    <text x="26" y="284"><tspan fill="#3fb950">┌─ <tspan font-weight="700">Do this</tspan> ──────────────────────┐</tspan>  <tspan fill="#ffa657">┌─ <tspan font-weight="700">Avoid this</tspan> ───────────────────┐</tspan></text>
+    <text x="26" y="305"><tspan fill="#3fb950">│</tspan> Keep the source readable.      <tspan fill="#3fb950">│</tspan>  <tspan fill="#ffa657">│</tspan> Raw &lt;span&gt; HTML in your notes. <tspan fill="#ffa657">│</tspan></text>
+    <text x="26" y="326"><tspan fill="#3fb950">│</tspan> Use ok, warn and !.            <tspan fill="#3fb950">│</tspan>  <tspan fill="#ffa657">│</tspan> A build step for your docs.    <tspan fill="#ffa657">│</tspan></text>
+    <text x="26" y="347"><tspan fill="#3fb950">└────────────────────────────────┘</tspan>  <tspan fill="#ffa657">└────────────────────────────────┘</tspan></text>
+
+    <!-- Single danger box -->
+    <text x="26" y="379" fill="#ff7b72">┌─ <tspan font-weight="700">Never Commit Secrets</tspan> ─────────────────────────────────────────────┐</text>
+    <text x="26" y="400"><tspan fill="#ff7b72">│</tspan> Keep .env files out of git and rotate leaked keys <tspan fill="#ff7b72" font-weight="700">immediately</tspan>.     <tspan fill="#ff7b72">│</tspan></text>
+    <text x="26" y="421" fill="#ff7b72">└────────────────────────────────────────────────────────────────────┘</text>
   </g>
 </svg>

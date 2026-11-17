@@ -543,7 +543,7 @@ ${vars('light')}
 ${vars('dark')}
   }
 }
-:root[data-theme="dark"] {
+:root[data-theme="dark"], body.vscode-dark, body.vscode-high-contrast {
   --hue-text: ${PAGE.dark.text};
   --hue-neutral-bg: ${COLORS.gray.dark.bg};
 ${vars('dark')}
@@ -556,7 +556,7 @@ ${prefix}.hue-box-title { font-weight: 600; margin-bottom: .35em; }
 ${rules}
 ${prefix}.hue-task-list { list-style: none; padding-left: 0.4em; }
 ${prefix}.hue-task { display: flex; align-items: baseline; gap: 0.45em; margin: 0.25em 0; }
-${prefix}.hue-task-box { display: inline-flex; align-items: center; justify-content: center; width: 1.25em; height: 1.25em; border-radius: 4px; font-size: 0.85em; font-weight: 700; flex-shrink: 0; border: 1.5px solid var(--hue-gray); color: var(--hue-gray); background: var(--hue-gray-bg); }
+${prefix}.hue-task-box { display: inline-flex; align-items: center; justify-content: center; width: 1.25em; height: 1.25em; border-radius: 4px; font-size: 0.85em; font-weight: 700; font-variant-emoji: text; flex-shrink: 0; border: 1.5px solid var(--hue-gray); color: var(--hue-gray); background: var(--hue-gray-bg); }
 ${prefix}.hue-task-box-progress { border-color: var(--hue-blue); color: var(--hue-blue); background: var(--hue-blue-bg); }
 ${prefix}.hue-task-box-blocked { border-color: var(--hue-red); color: var(--hue-red); background: var(--hue-red-bg); }
 ${prefix}.hue-task-box-question { border-color: var(--hue-purple); color: var(--hue-purple); background: var(--hue-purple-bg); }

@@ -2,7 +2,7 @@
   "name": "hue-md",
   "displayName": "Hue MD",
   "description": "Rich color spans, diff spans, keycaps, progress bars, multi-state tasks, and styled callout boxes (single or side-by-side) for Markdown (.hue.md) with live preview and editor highlighting",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "publisher": "spingras",
   "license": "MIT",
   "icon": "media/icon.png",
@@ -113,18 +113,8 @@
       "editor/title": [
         {
           "command": "hue.openPreviewSideBySide",
-          "when": "resourceExtname == .hue.md || resourceExtname == .md",
+          "when": "editorLangId == hue-markdown || editorLangId == markdown",
           "group": "navigation"
-        }
-      ],
-      "commandPalette": [
-        {
-          "command": "hue.openPreviewSideBySide",
-          "when": "editorTextFocus"
-        },
-        {
-          "command": "hue.downgradeToGfm",
-          "when": "resourceExtname == .hue.md"
         }
       ]
     },
@@ -133,13 +123,13 @@
         "command": "hue.openPreviewSideBySide",
         "key": "ctrl+k v",
         "mac": "cmd+k v",
-        "when": "editorLangId == hue-markdown"
+        "when": "editorLangId == hue-markdown || editorLangId == markdown"
       },
       {
         "command": "hue.openPreviewSideBySide",
         "key": "ctrl+shift+v",
         "mac": "shift+cmd+v",
-        "when": "editorLangId == hue-markdown"
+        "when": "editorLangId == hue-markdown || editorLangId == markdown"
       }
     ]
   },

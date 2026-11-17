@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="480" viewBox="0 0 1200 480" data-theme="dark">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" data-theme="dark">
 <title>Hue Markdown: the plain-text source on the left, how Hue renders it on the right</title>
-<foreignObject x="0" y="0" width="1200" height="480">
+<foreignObject x="0" y="0" width="1200" height="560">
 <div xmlns="http://www.w3.org/1999/xhtml" class="frame">
 <style>
 /* Hue theme: generated from src/palette.js */
@@ -42,7 +42,7 @@
   --hue-gray-bg: #21262d;
   }
 }
-:root[data-theme="dark"] {
+:root[data-theme="dark"], body.vscode-dark, body.vscode-high-contrast {
   --hue-text: #e6edf3;
   --hue-neutral-bg: #21262d;
   --hue-red: #ff7b72;
@@ -100,49 +100,88 @@
 .hue-bg-gray { background: var(--hue-gray-bg); padding: 0 .2em; border-radius: 3px; }
 .hue-box-gray { border-left-color: var(--hue-gray); background: var(--hue-gray-bg); }
 .hue-box-gray > .hue-box-title { color: var(--hue-gray); }
+.hue-task-list { list-style: none; padding-left: 0.4em; }
+.hue-task { display: flex; align-items: baseline; gap: 0.45em; margin: 0.25em 0; }
+.hue-task-box { display: inline-flex; align-items: center; justify-content: center; width: 1.25em; height: 1.25em; border-radius: 4px; font-size: 0.85em; font-weight: 700; font-variant-emoji: text; flex-shrink: 0; border: 1.5px solid var(--hue-gray); color: var(--hue-gray); background: var(--hue-gray-bg); }
+.hue-task-box-progress { border-color: var(--hue-blue); color: var(--hue-blue); background: var(--hue-blue-bg); }
+.hue-task-box-blocked { border-color: var(--hue-red); color: var(--hue-red); background: var(--hue-red-bg); }
+.hue-task-box-question { border-color: var(--hue-purple); color: var(--hue-purple); background: var(--hue-purple-bg); }
+.hue-task-box-done { border-color: var(--hue-green); color: var(--hue-green); background: var(--hue-green-bg); }
+.hue-columns { display: -ms-flexbox; display: flex; -ms-flex-wrap: nowrap; flex-wrap: nowrap; margin: 1em 0; align-items: stretch; }
+.hue-columns > .hue-box { -ms-flex: 1 1 0px; flex: 1 1 0px; margin: 0; box-sizing: border-box; }
+.hue-columns > .hue-box + .hue-box { margin-left: 16px; }
+.hue-kbd { display: inline-block; padding: 0.1em 0.42em; font-size: 0.84em; line-height: 1.2; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--hue-text); background: var(--hue-neutral-bg); border: 1px solid var(--hue-gray); border-bottom-width: 2px; border-radius: 4px; }
+.hue-progress { display: inline-flex; align-items: center; gap: 0.45em; vertical-align: middle; font-variant-numeric: tabular-nums; }
+.hue-progress-track { display: inline-block; width: 5.5em; height: 0.55em; background: var(--hue-neutral-bg); border-radius: 999px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--hue-gray) 35%, transparent); }
+.hue-progress-fill { display: block; height: 100%; border-radius: 999px; background: var(--hue-blue); }
+.hue-progress-green .hue-progress-fill { background: var(--hue-green); }
+.hue-progress-blue .hue-progress-fill { background: var(--hue-blue); }
+.hue-progress-orange .hue-progress-fill { background: var(--hue-orange); }
+.hue-progress-red .hue-progress-fill { background: var(--hue-red); }
+.hue-progress-label { font-size: 0.85em; font-weight: 600; color: var(--hue-text); }
+ins.hue-diff-add { color: var(--hue-green); background: var(--hue-green-bg); text-decoration: none; padding: 0 0.22em; border-radius: 3px; }
+del.hue-diff-del { color: var(--hue-red); background: var(--hue-red-bg); text-decoration: line-through; padding: 0 0.22em; border-radius: 3px; }
 
-.frame { box-sizing: border-box; width: 1200px; height: 480px; padding: 20px; display: flex; gap: 20px;
-  background: #0d1117; color: #e6edf3; font: 15px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; border: 1px solid #30363d; border-radius: 12px; }
+.frame { box-sizing: border-box; width: 1200px; height: 560px; padding: 18px; display: flex; gap: 18px;
+  background: #0d1117; color: #e6edf3; font: 14.5px/1.48 -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; border: 1px solid #30363d; border-radius: 12px; }
 .pane { flex: 1; min-width: 0; border: 1px solid #30363d; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
-.bar { padding: 8px 14px; font: 600 12px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; color: #8b949e; background: #161b22; border-bottom: 1px solid #30363d; letter-spacing: .02em; }
-.src { margin: 0; padding: 14px 16px; flex: 1; background: #161b22; font: 13px/1.55 ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace; white-space: pre-wrap; color: #e6edf3; }
-.out { padding: 4px 22px 14px; flex: 1; }
-.out h1 { font-size: 1.6em; margin: .5em 0 .4em; padding-bottom: .25em; border-bottom: 1px solid #30363d; }
-.out p { margin: .6em 0; }
+.bar { padding: 7px 14px; font: 600 12px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; color: #8b949e; background: #161b22; border-bottom: 1px solid #30363d; letter-spacing: .02em; }
+.src { margin: 0; padding: 12px 16px; flex: 1; background: #161b22; font: 12.4px/1.48 ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace; white-space: pre-wrap; color: #e6edf3; }
+.out { padding: 4px 20px 12px; flex: 1; }
+.out h1 { font-size: 1.45em; margin: .4em 0 .35em; padding-bottom: .22em; border-bottom: 1px solid #30363d; }
+.out p { margin: .45em 0; }
+.out ul.hue-task-list { margin: .5em 0; }
 .out code { font: .88em ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace; background: #161b22; padding: .1em .35em; border-radius: 4px; }
-.out .hue-box { margin: .8em 0; }
+.out .hue-box { margin: .6em 0; padding: .48em .85em; }
+.out .hue-columns { margin: .6em 0; }
+.out .hue-columns > .hue-box { margin: 0; padding: .48em .85em; }
 </style>
-<div class="pane"><div class="bar">release.hue.md · plain text, as typed</div><pre class="src"># Release notes
+<div class="pane"><div class="bar">release.hue.md · plain text, as typed</div><pre class="src"># Release notes (v0.2)
 
-Build: {ok: passing} · Coverage: {warn: 71%} · Deploy: {!: blocked}
+Build: {ok: passing} · Coverage: {warn: 71%} · Deploy: {!: blocked}  
+Diff: {+: added split boxes &amp; tasks} · {-: removed HTML spans}  
+Preview: [[Ctrl+Shift+V]] · Progress: [========..] 80%
 
-Mark {bg-yellow: key phrases}, add {blue bg-gray: a badge},
-or pick an exact {#c0ffee bg-#333333: hex color}.
-Prose like {a: 1} stays untouched.
+- [x] Ship core v0.2 parser &amp; CLI slide deck
+- [-] Update editor previews ({blue bg-gray: VS Code &amp; Notepad++})
+- [!] Resolve {!: release blocker} before tagging
+- [?] Confirm keycap downgrade
+- [ ] Announce the release
 
-+-- info Pro tip
-| Start a box with `+--` and a color word.
-| No right border to keep aligned.
-+--
++-- ok Do this                      +-- warn Avoid this
+| Keep raw source readable.         | Pollute notes with `&lt;span&gt;` HTML.
+| Use `ok`, `warn`, and `!`.        | Trap docs in a JSX build step.
++--                                 +--
 
 +-- ! Never commit secrets
-| Keep `.env` out of git and rotate
-| leaked keys {!: immediately}.
+| Keep `.env` out of git and rotate leaked keys {!: immediately}.
 +--</pre></div>
-<div class="pane"><div class="bar">Rendered by Hue · VS Code, Obsidian, web, terminal</div><div class="out"><h1>Release notes</h1>
-<p>Build: <span class="hue hue-green">passing</span> · Coverage: <span class="hue hue-orange">71%</span> · Deploy: <span class="hue hue-red">blocked</span></p>
-<p>Mark <span class="hue hue-bg-yellow">key phrases</span>, add <span class="hue hue-blue hue-bg-gray">a badge</span>,
-or pick an exact <span class="hue" style="color:#c0ffee;background:#333333">hex color</span>.
-Prose like {a: 1} stays untouched.</p>
-<div class="hue-box hue-box-blue" role="note">
-<div class="hue-box-title">Pro tip</div>
-<p>Start a box with <code>+--</code> and a color word.
-No right border to keep aligned.</p>
+<div class="pane"><div class="bar">Rendered by Hue · VS Code, Notepad++, Claude Code, web, terminal</div><div class="out"><h1>Release notes (v0.2)</h1>
+<p>Build: <span class="hue hue-green">passing</span> · Coverage: <span class="hue hue-orange">71%</span> · Deploy: <span class="hue hue-red">blocked</span><br />
+Diff: <ins class="hue hue-diff-add">added split boxes &amp; tasks</ins> · <del class="hue hue-diff-del">removed HTML spans</del><br />
+Preview: <kbd class="hue-kbd">Ctrl+Shift+V</kbd> · Progress: <span class="hue-progress hue-progress-blue" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"><span class="hue-progress-track"><span class="hue-progress-fill" style="width:80%"></span></span><span class="hue-progress-label">80%</span></span></p>
+<ul class="hue-task-list">
+<li class="hue-task hue-task-done"><span class="hue-task-box hue-task-box-done" aria-hidden="true">&#10003;</span> Ship core v0.2 parser &amp; CLI slide deck</li>
+<li class="hue-task hue-task-progress"><span class="hue-task-box hue-task-box-progress" aria-hidden="true">&#9680;</span> Update editor previews (<span class="hue hue-blue hue-bg-gray">VS Code &amp; Notepad++</span>)</li>
+<li class="hue-task hue-task-blocked"><span class="hue-task-box hue-task-box-blocked" aria-hidden="true">!</span> Resolve <span class="hue hue-red">release blocker</span> before tagging</li>
+<li class="hue-task hue-task-question"><span class="hue-task-box hue-task-box-question" aria-hidden="true">?</span> Confirm keycap downgrade</li>
+<li class="hue-task hue-task-todo"><span class="hue-task-box hue-task-box-todo" aria-hidden="true">&#9744;</span> Announce the release</li>
+</ul>
+<div class="hue-columns hue-columns-2">
+<div class="hue-box hue-box-green" role="note">
+<div class="hue-box-title">Do this</div>
+<p>Keep raw source readable.
+Use <code>ok</code>, <code>warn</code>, and <code>!</code>.</p>
+</div>
+<div class="hue-box hue-box-orange" role="note">
+<div class="hue-box-title">Avoid this</div>
+<p>Pollute notes with <code>&lt;span&gt;</code> HTML.
+Trap docs in a JSX build step.</p>
+</div>
 </div>
 <div class="hue-box hue-box-red" role="note">
 <div class="hue-box-title">Never commit secrets</div>
-<p>Keep <code>.env</code> out of git and rotate
-leaked keys <span class="hue hue-red">immediately</span>.</p>
+<p>Keep <code>.env</code> out of git and rotate leaked keys <span class="hue hue-red">immediately</span>.</p>
 </div>
 </div></div>
 </div>
