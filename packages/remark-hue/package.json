@@ -1,0 +1,41 @@
+{
+  "name": "remark-hue",
+  "version": "0.2.2",
+  "description": "remark plugin for Hue Markdown: colored spans, drawn boxes and hue fences",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\""
+  },
+  "keywords": [
+    "remark",
+    "remark-plugin",
+    "micromark",
+    "micromark-extension",
+    "markdown",
+    "hue",
+    "unified"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "markdown-it-hue": "file:../..",
+    "mdast-util-from-markdown": "^2.0.2",
+    "micromark": "^4.0.2",
+    "micromark-core-commonmark": "^2.0.4",
+    "micromark-util-character": "^2.1.1"
+  },
+  "devDependencies": {
+    "rehype-parse": "^9.0.1",
+    "rehype-raw": "^7.0.0",
+    "rehype-stringify": "^10.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.1",
+    "remark-stringify": "^11.0.0",
+    "unified": "^11.0.5"
+  }
+}

@@ -18,8 +18,8 @@ import {
   renderAnsi as renderAnsiNext,
   parseSlides,
   renderSlides
-} from '../md-hue/src/index.js'
-import { textWidth } from '../md-hue/src/ansi.js'
+} from '../packages/md-hue/src/index.js'
+import { textWidth } from '../packages/md-hue/src/ansi.js'
 import { parseSpecExamples } from '../spec/parse-spec.js'
 import { time } from '../scripts/bench-pathological.js'
 
@@ -28,7 +28,7 @@ const r = (s) => md.render(s).trim()
 
 // ------------------------------------------------------------ Gate 1: Executable ACC Spec Examples
 
-const accText = readFileSync(new URL('../acc/ACC.md', import.meta.url), 'utf8')
+const accText = readFileSync(new URL('../spec/acc/ACC.md', import.meta.url), 'utf8')
 const accExamples = parseSpecExamples(accText)
 
 test('ACC spec has at least 25 executable examples and no unfilled TODOs', () => {

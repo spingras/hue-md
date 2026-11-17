@@ -3,8 +3,8 @@
 // playground always shows exactly what the packages do.
 import MarkdownIt from 'markdown-it'
 import hue from '../src/index.js'
-import { downgrade } from '../md-hue/src/downgrade.js'
-import { renderAnsi } from '../md-hue/src/ansi.js'
+import { downgrade } from '../packages/md-hue/src/downgrade.js'
+import { renderAnsi } from '../packages/md-hue/src/ansi.js'
 
 const md = new MarkdownIt().use(hue)
 

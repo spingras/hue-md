@@ -21,9 +21,9 @@
   "exports": {
     ".": "./src/index.js",
     "./core": "./src/core.js",
-    "./ansi": "./md-hue/src/ansi.js",
-    "./downgrade": "./md-hue/src/downgrade.js",
-    "./html": "./md-hue/src/index.js",
+    "./ansi": "./packages/md-hue/src/ansi.js",
+    "./downgrade": "./packages/md-hue/src/downgrade.js",
+    "./html": "./packages/md-hue/src/index.js",
     "./css": "./dist/hue.css"
   },
   "files": [
@@ -31,12 +31,12 @@
     "src",
     "dist/hue-md.css",
     "dist/hue.css",
-    "md-hue/src",
-    "md-hue/bin",
+    "packages/md-hue/src",
+    "packages/md-hue/bin",
     "spec/spec.md"
   ],
   "scripts": {
-    "test": "node --test \"test/**/*.test.js\" \"md-hue/test/**/*.test.js\" \"vscode-hue/test/**/*.test.js\" \"github-hue/test/**/*.test.js\"",
+    "test": "node --test \"test/**/*.test.js\" \"packages/md-hue/test/**/*.test.js\" \"packages/vscode-hue/test/**/*.test.js\" \"packages/github-hue/test/**/*.test.js\"",
     "build:css": "node scripts/build-css.js",
     "demo": "node scripts/build-hero.js && node scripts/generate-readme-assets.js && node scripts/render-demo.js",
     "build:screenshots": "node scripts/build-screenshots.js",

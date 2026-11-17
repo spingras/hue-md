@@ -1,4 +1,4 @@
-// Tests for the Claude Code plugin in claude-code-hue/: manifest, bundled CLI,
+// Tests for the Claude Code plugin in packages/claude-code-hue/: manifest, bundled CLI,
 // the /hue-md:github sync script, and the auto-downgrade hook.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
@@ -7,10 +7,10 @@ import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { execFileSync, spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { downgrade } from '../md-hue/src/downgrade.js'
+import { downgrade } from '../packages/md-hue/src/downgrade.js'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
-const plugin = join(root, 'claude-code-hue')
+const plugin = join(root, 'packages', 'claude-code-hue')
 const CLI = join(plugin, 'scripts', 'hue-md.cjs')
 const SYNC = join(plugin, 'scripts', 'sync.cjs')
 const HOOK = join(plugin, 'scripts', 'after-write.cjs')
@@ -34,7 +34,7 @@ test('plugin manifest and marketplace entry agree', () => {
   assert.equal(manifest.name, 'hue-md')
   const entry = market.plugins.find((p) => p.name === manifest.name)
   assert.ok(entry, 'marketplace lists the plugin under its manifest name')
-  assert.equal(entry.source, './claude-code-hue')
+  assert.equal(entry.source, './packages/claude-code-hue')
   for (const skill of ['write', 'preview', 'github']) {
     const md = readFileSync(join(plugin, 'skills', skill, 'SKILL.md'), 'utf8')
     assert.match(md, new RegExp(`^---\\nname: ${skill}\\ndescription: .+`), `${skill} has frontmatter`)
