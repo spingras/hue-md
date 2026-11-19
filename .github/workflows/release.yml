@@ -27,6 +27,12 @@ jobs:
           npm ci
           npm test
 
+      - name: Build the Joplin plugin (.jpl)
+        working-directory: packages/joplin-hue
+        run: |
+          npm ci
+          npm run dist
+
       - name: Package all hue-md release artifacts
         shell: pwsh
         run: ./scripts/package-release.ps1

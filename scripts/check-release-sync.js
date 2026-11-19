@@ -116,11 +116,12 @@ async function main () {
 
   if (problems.length) {
     console.error('Release sync check FAILED:\n- ' + problems.join('\n- '))
-    process.exit(1)
+    process.exitCode = 1
+    return
   }
   console.log(`Release sync check passed against the ${tag}.`)
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch((err) => { console.error(err.message); process.exit(1) })
+  main().catch((err) => { console.error(err.message); process.exitCode = 1 })
 }
