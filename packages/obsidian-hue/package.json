@@ -1,6 +1,6 @@
 {
   "name": "obsidian-plugin-hue-md",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": true,
   "description": "Hue MD for Obsidian: colored spans, diff spans, key caps, progress bars, multi-state tasks and drawn callout boxes in Reading view.",
   "author": "spingras",

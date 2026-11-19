@@ -1,0 +1,11 @@
+#!/bin/sh
+# Blocks a push to main that would put download links or shipped files on main
+# before the GitHub release has them. Pushing a v* tag in the same push
+# (git push --atomic origin main vX.Y.Z) is a release and passes.
+# Turn on once per clone: git config core.hooksPath .githooks
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in refs/tags/v*) exit 0 ;; esac
+done
+NODE=$(command -v node || command -v node.exe)
+[ -z "$NODE" ] && { echo "pre-push: node not found, cannot run the release sync check" >&2; exit 1; }
+exec "$NODE" scripts/check-release-sync.js

@@ -2,6 +2,14 @@
 
 All notable changes to the `hue-md` extension are documented in this file.
 
+## [0.2.3] - 2026-11-19
+
+### Fixed
+- The `split` snippet now lines up its two columns, so it renders as side-by-side boxes
+
+### Also in this release (other platforms)
+- Obsidian, the GitHub browser extension and userscript, Neovim, and the Sublime, UltiSnips, LuaSnip and Obsidian snippets now support all v0.2 syntax
+
 ## [0.2.2] - 2026-11-17
 
 ### Fixed

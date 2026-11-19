@@ -77,7 +77,6 @@ Release progress:
 | VS Code / Cursor | Search `spingras.hue-md` in Extensions |
 | Notepad++ (x64) | Extract the zip and run `install.ps1` |
 | Obsidian | Extract `hue-md-obsidian.zip` to `.obsidian/plugins/hue-md/` |
-| Joplin | **Install from file** with `io.github.spingras.hue-md.jpl` |
 | Neovim | Extract `hue-md-nvim.zip` to your `pack/*/start/` folder |
 | GitHub.com | `hue-md.user.js` (userscript) or `hue-md-browser.zip` (Chromium) |
 | Snippets | `hue-md-snippets.zip`: Sublime Text, UltiSnips, LuaSnip, Obsidian |

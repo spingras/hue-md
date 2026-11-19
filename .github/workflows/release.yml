@@ -31,12 +31,26 @@ jobs:
         shell: pwsh
         run: ./scripts/package-release.ps1
 
+      - name: Every README and website download link has a built file
+        run: node scripts/check-release-sync.js --dir dist/release
+
       - name: Create GitHub Release & upload assets
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           files: dist/release/*
+
+      - name: Every download link answers 200 on the published release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          fail=0
+          for f in $(grep -ohE 'releases/latest/download/[A-Za-z0-9._-]+' README.md packages/*/README.md | sort -u); do
+            code=$(curl -s -o /dev/null -L -w '%{http_code}' "https://github.com/spingras/hue-md/$f")
+            echo "$code $f"; [ "$code" = "200" ] || fail=1
+          done
+          exit $fail
 
       - name: Publish VS Code extension to Open VSX (Trusted Publisher OIDC)
         if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'

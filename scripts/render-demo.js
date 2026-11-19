@@ -26,7 +26,6 @@ const INSTALL = [
       { name: 'VS Code', note: 'Also Cursor and Windsurf', text: 'Search for “Hue MD” in Extensions. Adds a live preview, editor colors and box snippets.', href: 'https://marketplace.visualstudio.com/items?itemName=spingras.hue-md', action: 'Open Marketplace', extra: { href: REL + 'hue-md.vsix', label: '.vsix' } },
       { name: 'Notepad++', note: 'Windows x64', text: 'Download the zip and run install.ps1. Press Ctrl+Shift+H for the live preview.', href: REL + 'hue-md-npp-x64.zip', action: 'Download' },
       { name: 'Obsidian', text: 'Shows Hue colors and boxes in your vault. Install steps are in the zip.', href: REL + 'hue-md-obsidian.zip', action: 'Download' },
-      { name: 'Joplin', text: 'Renders Hue in the note viewer, plus a Tools → Hue MD menu. Install from file in Options → Plugins.', href: REL + 'io.github.spingras.hue-md.jpl', action: 'Download' },
       { name: 'Neovim', text: 'Editor colors and a :HueBox command. Install steps are in the zip.', href: REL + 'hue-md-nvim.zip', action: 'Download' },
       { name: 'Sublime Text and Emacs', text: 'Box snippets for Sublime Text and hue-markdown-mode.el for Emacs.', href: REL + 'hue-md-snippets.zip', action: 'Download', early: true }
     ]

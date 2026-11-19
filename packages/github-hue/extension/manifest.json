@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Hue MD for GitHub",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Renders Hue MD on GitHub: colored spans, diff spans, key caps, progress bars, multi-state tasks and callout boxes.",
   "author": "spingras",
   "homepage_url": "https://spingras.github.io/hue-md",
