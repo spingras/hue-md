@@ -1,3 +1,3 @@
-+-- warn <% tp.file.cursor(1) %>
-| <% tp.file.cursor(2) %>
++-- warn Title
+| Content
 +--

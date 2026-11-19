@@ -95,7 +95,7 @@ test('property: every CommonMark 0.31.2 example is returned unchanged', () => {
 // stay as plain text. They are removed before comparing; everything else
 // (spans, boxes, key caps, diffs, fences) must be gone.
 const KEPT_ON_PURPOSE = (md) => md
-  .replace(/^(\s*(?:[-*+]|\d+[.)])) \[[ xX]\] /gm, '$1 ')
+  .replace(/^((?:\s*>)*\s*(?:[-*+]|\d+[.)])) \[[ xX]\] /gm, '$1 ') // also inside > alerts
   .replace(/\[[=#■█]*[.\-_░ ]*\] *\d{1,3}%/g, 'BAR')
 
 test('property: no Hue syntax survives a downgrade (all spec examples and the demo)', () => {

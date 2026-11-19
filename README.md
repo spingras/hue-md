@@ -28,6 +28,12 @@ Hue MD adds color spans, diff spans, key caps, progress bars, multi-state tasks,
 
 The raw text stays readable in plain editors, terminal diffs, and AI prompts.
 
+<p align="center">
+  <a href="https://spingras.github.io/hue-md/">
+    <img alt="Typing Hue MD in an editor with the live preview next to it, then viewing the same file in the terminal with hue-md view" src="assets/demo.gif" width="100%">
+  </a>
+</p>
+
 ---
 
 ## How to install
@@ -39,11 +45,14 @@ The raw text stays readable in plain editors, terminal diffs, and AI prompts.
 | Claude Code | [`packages/claude-code-hue/`](packages/claude-code-hue/) | In Claude Code, run `/plugin install hue-md --marketplace spingras/hue-md`.<br>On versions before 2.1.275: `/plugin marketplace add spingras/hue-md`, then `/plugin install hue-md@spingras`. |
 | Notepad++ (Windows x64) | [`hue-md-npp-x64.zip`](https://github.com/spingras/hue-md/releases/latest/download/hue-md-npp-x64.zip) | 1. Download and extract the zip archive.<br>2. Right-click `install.ps1` and choose **Run with PowerShell**.<br>3. Restart Notepad++. |
 | Web stylesheet | [`hue-md.css`](https://github.com/spingras/hue-md/releases/latest/download/hue-md.css) | Add `<link rel="stylesheet" href="hue-md.css">` to your HTML `<head>`. |
-| Obsidian | [`hue-md-obsidian.zip`](https://github.com/spingras/hue-md/releases/latest/download/hue-md-obsidian.zip) | 1. Extract the zip archive to your vault `.obsidian/plugins/hue-md/` folder.<br>2. Enable Hue MD in Community plugins settings. |
-| Neovim (`hue-md.nvim`) | [`hue-md-nvim.zip`](https://github.com/spingras/hue-md/releases/latest/download/hue-md-nvim.zip) | 1. Extract the zip archive to your Neovim pack directory.<br>2. Add `require('hue-md').setup()` to your configuration. |
+| Obsidian | [`hue-md-obsidian.zip`](https://github.com/spingras/hue-md/releases/latest/download/hue-md-obsidian.zip) | 1. Extract the zip archive to your vault `.obsidian/plugins/hue-md/` folder.<br>2. Enable Hue MD in Community plugins settings.<br>Hue renders in Reading view. |
+| Joplin | [`io.github.spingras.hue-md.jpl`](https://github.com/spingras/hue-md/releases/latest/download/io.github.spingras.hue-md.jpl) | 1. In Joplin, open **Tools → Options → Plugins**.<br>2. Click the gear icon, choose **Install from file** and pick the `.jpl`.<br>3. Restart Joplin. |
+| Neovim (`hue-md.nvim`) | [`hue-md-nvim.zip`](https://github.com/spingras/hue-md/releases/latest/download/hue-md-nvim.zip) | 1. Extract the zip archive to `~/.config/nvim/pack/hue-md/start/hue-md.nvim`.<br>2. Restart Neovim. It loads by itself; `:HueBox` inserts a box. |
 | GitHub.com (userscript) | [`hue-md.user.js`](https://github.com/spingras/hue-md/releases/latest/download/hue-md.user.js) | 1. Install Tampermonkey or Violentmonkey.<br>2. Open `hue-md.user.js` in your browser.<br>3. Select Install in your userscript extension. |
 | Chromium extension | [`hue-md-browser.zip`](https://github.com/spingras/hue-md/releases/latest/download/hue-md-browser.zip) | 1. Extract the zip archive.<br>2. Open `chrome://extensions` in your browser.<br>3. Turn on Developer mode.<br>4. Select Load unpacked and choose the extracted folder. |
-| Sublime and Emacs | [`hue-md-snippets.zip`](https://github.com/spingras/hue-md/releases/latest/download/hue-md-snippets.zip) | 1. For Sublime Text, copy the snippets into `Packages/User/`.<br>2. For Emacs, load `hue-markdown-mode.el` in your init file. |
+| Snippets and Emacs | [`hue-md-snippets.zip`](https://github.com/spingras/hue-md/releases/latest/download/hue-md-snippets.zip) | 1. Sublime Text: copy `sublime/` into `Packages/User/`.<br>2. Vim and Neovim: use `ultisnips/hue.snippets` (UltiSnips) or `luasnip/hue.lua` (LuaSnip).<br>3. Obsidian: copy `obsidian/` into your templates folder.<br>4. Emacs: load `emacs/hue-markdown-mode.el` in your init file (partial v0.2 support). |
+
+Every platform above supports the full v0.2 syntax, except Emacs (partial).
 
 ---
 
@@ -288,7 +297,9 @@ const ansi = renderAnsi(sourceText, { width: 80, theme: 'dark' })
 const slides = renderSlides(sourceText, { width: 80, theme: 'dark' })
 ```
 
-The [language specification](spec/spec.md) and [v0.2 specification](spec/acc/ACC.md) define the grammar and 88 executable test examples.
+The [language specification](spec/spec.md) defines the full v0.2 grammar with 88 executable examples. The [v0.2 acceptance tests](spec/acc/ACC.md) check the parser, terminal renderer and GitHub downgrade.
+
+For remark and unified, [`packages/remark-hue`](packages/remark-hue/) parses the same syntax, including all v0.2 constructs (in the repository, not yet on npm).
 
 Run the test suite in a clone of this repository:
 

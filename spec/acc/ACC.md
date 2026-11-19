@@ -2,7 +2,7 @@
 title: Hue Markdown v0.2 Acceptance Criteria & Spec (ACC)
 version: 0.2.0-acc
 date: 2026-11-16
-status: Promoted to production in Hue MD v0.2.0 (src/). Kept as the v0.2 syntax reference until spec/spec.md covers it.
+status: Promoted to production in Hue MD v0.2.0 (src/). The v0.2 syntax and examples are now in spec/spec.md; this file stays as the record of the acceptance gates.
 ---
 
 # Hue Markdown v0.2 Acceptance Criteria (ACC)

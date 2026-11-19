@@ -10,13 +10,21 @@ license: CC-BY-SA 4.0
 ## What is Hue Markdown?
 
 Hue Markdown ("Hue") is a strict superset of [CommonMark 0.31.2]
-that adds three things:
+that adds:
 
 1. **Spans**: colored text and background shades, `{red: like this}`.
 2. **Boxes**: blocks whose border is drawn in the source with
    box-drawing or ASCII characters.
 3. **Hue fences**: a fenced code block with the info string `hue`,
    whose content is rendered as Hue Markdown.
+4. **Diff spans**: inserted and removed text, `{+: added}` and
+   `{-: removed}`.
+5. **Key caps**: keyboard keys and shortcuts, `[[Ctrl+C]]`.
+6. **Progress bars**: `[======....] 60%`.
+7. **Tasks** with more states than done and to do: `- [-]` in
+   progress, `- [!]` blocked, `- [?]` question.
+8. **Side-by-side boxes**: boxes drawn next to each other become
+   columns.
 
 Hue's main design rule is that **the source must stay readable when
 it is not rendered.** Every construct in this document was chosen
@@ -808,6 +816,438 @@ Other fences are ordinary code blocks:
 </code></pre>
 ````````````````````````````````
 
+# Diff spans
+
+A diff span marks inserted or removed text. It is a span whose style
+is the single token `+` (inserted) or `-` (removed), and it follows
+every span rule above: brace matching, Markdown inside, code spans and
+escapes.
+
+- `{+: content}` renders as `<ins class="hue hue-diff-add">content</ins>`.
+- `{-: content}` renders as `<del class="hue hue-diff-del">content</del>`.
+
+Basic inline addition and deletion:
+
+```````````````````````````````` example
+v0.2: {+: Added slide mode}, {-: Removed legacy flag}.
+.
+<p>v0.2: <ins class="hue hue-diff-add">Added slide mode</ins>, <del class="hue hue-diff-del">Removed legacy flag</del>.</p>
+````````````````````````````````
+
+Nested Markdown and Hue spans inside diff spans:
+
+```````````````````````````````` example
+{+: Enable **fast** `O(n)` scanning} and {-: drop *slow* path}.
+.
+<p><ins class="hue hue-diff-add">Enable <strong>fast</strong> <code>O(n)</code> scanning</ins> and <del class="hue hue-diff-del">drop <em>slow</em> path</del>.</p>
+````````````````````````````````
+
+Braces inside code spans do not close a diff span:
+
+```````````````````````````````` example
+{+: Added `fn() { return 1 }` helper}
+.
+<p><ins class="hue hue-diff-add">Added <code>fn() { return 1 }</code> helper</ins></p>
+````````````````````````````````
+
+Escaped or empty diff spans stay literal text:
+
+```````````````````````````````` example
+\{+: literal} and {+:} and {-: unclosed
+.
+<p>{+: literal} and {+:} and {-: unclosed</p>
+````````````````````````````````
+
+# Key caps
+
+`[[Key]]` renders as `<kbd class="hue-kbd">Key</kbd>` when `Key` is a
+keyboard key or a chord of keys joined by `+`:
+
+1. **Named keys** (case-insensitive): `Ctrl`, `Control`, `Shift`, `Alt`, `Option`, `Opt`, `Cmd`, `Command`, `Super`, `Meta`, `Win`, `Fn`, `Enter`, `Return`, `Esc`, `Escape`, `Tab`, `Space`, `Spacebar`, `Backspace`, `Bksp`, `Delete`, `Del`, `Insert`, `Ins`, `Up`, `Down`, `Left`, `Right`, `Home`, `End`, `PgUp`, `PageUp`, `PgDn`, `PageDown`, `CapsLock`, `Caps`, `NumLock`, `ScrollLock`, `PrtSc`, `PrintScreen`, `Pause`, `Break`, `Menu`, `Clear`, `F1`–`F24`.
+2. **Single uppercase letter or key symbol**: `A`–`Z`, `/`, `?`, `+`, `-`, `=`, `~`, `⌘`, `⌥`, `⇧`, `⌃`, `⏎`, `⌫`, `⇥`, `⎋`, `↑`, `↓`, `←`, `→`.
+3. **Key chords** joined by `+`: e.g., `[[Ctrl+C]]`, `[[Cmd+Shift+P]]`, `[[Alt+F4]]`, `[[Ctrl+1]]`, `[[Ctrl++]]`.
+
+Anything else between `[[` and `]]` stays literal text: wiki links
+(`[[Project Roadmap]]`), unknown words, lowercase single letters and
+digits (`[[a]]`, `[[0]]`). So does `[[` directly after a letter, a digit
+or a bracket (`arr[[0]]`), and `[[Key]]` directly followed by `]` or
+`(`. A key cap is at most 32 characters.
+
+Individual keys separated by text:
+
+```````````````````````````````` example
+Press [[Ctrl]] + [[Shift]] + [[P]] to open the palette.
+.
+<p>Press <kbd class="hue-kbd">Ctrl</kbd> + <kbd class="hue-kbd">Shift</kbd> + <kbd class="hue-kbd">P</kbd> to open the palette.</p>
+````````````````````````````````
+
+Combined chord inside a single keycap:
+
+```````````````````````````````` example
+Use [[Cmd+Shift+P]] or [[Alt+F4]] or [[Ctrl++]].
+.
+<p>Use <kbd class="hue-kbd">Cmd+Shift+P</kbd> or <kbd class="hue-kbd">Alt+F4</kbd> or <kbd class="hue-kbd">Ctrl++</kbd>.</p>
+````````````````````````````````
+
+Navigation, function, and symbol keys:
+
+```````````````````````````````` example
+Hit [[Esc]], [[Enter]], [[Tab]], [[F5]], or [[?]].
+.
+<p>Hit <kbd class="hue-kbd">Esc</kbd>, <kbd class="hue-kbd">Enter</kbd>, <kbd class="hue-kbd">Tab</kbd>, <kbd class="hue-kbd">F5</kbd>, or <kbd class="hue-kbd">?</kbd>.</p>
+````````````````````````````````
+
+WikiLinks and unknown words are never touched:
+
+```````````````````````````````` example
+See [[Project Roadmap]] and [[internal_doc]] for details.
+.
+<p>See [[Project Roadmap]] and [[internal_doc]] for details.</p>
+````````````````````````````````
+
+Array indexing and lowercase/digit tokens stay untouched:
+
+```````````````````````````````` example
+Matrix value `a[[0]]` or [[0]] or [[a]] or [[1, 2]].
+.
+<p>Matrix value <code>a[[0]]</code> or [[0]] or [[a]] or [[1, 2]].</p>
+````````````````````````````````
+
+Backslash-escaped keycaps stay literal:
+
+```````````````````````````````` example
+Literal \[[Ctrl]] keycap.
+.
+<p>Literal [[Ctrl]] keycap.</p>
+````````````````````````````````
+
+# Progress bars
+
+`[bar] NN%` renders as a progress bar:
+
+1. **Bar characters**: `4` to `40` total characters inside `[...]`, consisting of `0..40` filled characters (`=`, `#`, `■`, `█`) followed by `0..40` empty characters (`.`, `-`, `_`, `░`, ` `), with at least one non-space character.
+2. **Percentage**: Followed by optional whitespace and an integer `0`–`100` with `%`.
+3. **Color thresholds**:
+   - `100%` -> `green` (`hue-progress-green`)
+   - `50%`–`99%` -> `blue` (`hue-progress-blue`)
+   - `25%`–`49%` -> `orange` (`hue-progress-orange`)
+   - `0%`–`24%` -> `red` (`hue-progress-red`)
+
+The bar must not directly follow `[` and the percentage must not be
+directly followed by `(` or `[`, so links and nested brackets keep
+their meaning.
+
+All four automatic color tiers:
+
+```````````````````````````````` example
+Done: [==========] 100%
+Active: [======....] 60%
+Warmup: [===.......] 30%
+Low: [=.........] 10%
+.
+<p>Done: <span class="hue-progress hue-progress-green" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"><span class="hue-progress-track"><span class="hue-progress-fill" style="width:100%"></span></span><span class="hue-progress-label">100%</span></span>
+Active: <span class="hue-progress hue-progress-blue" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"><span class="hue-progress-track"><span class="hue-progress-fill" style="width:60%"></span></span><span class="hue-progress-label">60%</span></span>
+Warmup: <span class="hue-progress hue-progress-orange" role="progressbar" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"><span class="hue-progress-track"><span class="hue-progress-fill" style="width:30%"></span></span><span class="hue-progress-label">30%</span></span>
+Low: <span class="hue-progress hue-progress-red" role="progressbar" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"><span class="hue-progress-track"><span class="hue-progress-fill" style="width:10%"></span></span><span class="hue-progress-label">10%</span></span></p>
+````````````````````````````````
+
+Zero percent progress bar:
+
+```````````````````````````````` example
+Queued: [..........] 0%
+.
+<p>Queued: <span class="hue-progress hue-progress-red" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"><span class="hue-progress-track"><span class="hue-progress-fill" style="width:0%"></span></span><span class="hue-progress-label">0%</span></span></p>
+````````````````````````````````
+
+Hash and Unicode block characters also work:
+
+```````````````````````````````` example
+Build: [####----] 50%
+.
+<p>Build: <span class="hue-progress hue-progress-blue" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"><span class="hue-progress-track"><span class="hue-progress-fill" style="width:50%"></span></span><span class="hue-progress-label">50%</span></span></p>
+````````````````````````````````
+
+Brackets without a trailing percentage or shorter than 4 bar chars stay literal:
+
+```````````````````````````````` example
+Not a bar: [====] and [==] 50% and [====] 150%.
+.
+<p>Not a bar: [====] and [==] 50% and [====] 150%.</p>
+````````````````````````````````
+
+# Tasks
+
+A list item whose text starts with a marker in brackets, followed by
+at least one space, is a task. Tasks extend the GitHub task list
+(`[ ]` and `[x]`) with three more states:
+
+| Marker | State | Color | HTML symbol |
+|--------|-------|-------|-------------|
+| `[ ]` | `todo` | `gray` | `&#9744;` (☐) |
+| `[-]` | `progress` | `blue` | `&#9680;` (◐) |
+| `[!]` | `blocked` | `red` | `!` |
+| `[?]` | `question` | `purple` | `?` |
+| `[x]` or `[X]` | `done` | `green` | `&#10003;` (✓) |
+
+The item gets the classes `hue-task hue-task-<state>`, its list gets
+`hue-task-list`, and the item starts with
+`<span class="hue-task-box hue-task-box-<state>" aria-hidden="true">`
+holding the HTML symbol.
+
+```````````````````````````````` example
+- [ ] Write parser tests
+- [-] Implement split boxes
+- [!] Fix regression bug
+- [?] Confirm keycap list
+- [x] Ship ACC suite
+.
+<ul class="hue-task-list">
+<li class="hue-task hue-task-todo"><span class="hue-task-box hue-task-box-todo" aria-hidden="true">&#9744;</span> Write parser tests</li>
+<li class="hue-task hue-task-progress"><span class="hue-task-box hue-task-box-progress" aria-hidden="true">&#9680;</span> Implement split boxes</li>
+<li class="hue-task hue-task-blocked"><span class="hue-task-box hue-task-box-blocked" aria-hidden="true">!</span> Fix regression bug</li>
+<li class="hue-task hue-task-question"><span class="hue-task-box hue-task-box-question" aria-hidden="true">?</span> Confirm keycap list</li>
+<li class="hue-task hue-task-done"><span class="hue-task-box hue-task-box-done" aria-hidden="true">&#10003;</span> Ship ACC suite</li>
+</ul>
+````````````````````````````````
+
+Uppercase `[X]` maps to the `done` state:
+
+```````````````````````````````` example
+1. [X] First milestone
+.
+<ol class="hue-task-list">
+<li class="hue-task hue-task-done"><span class="hue-task-box hue-task-box-done" aria-hidden="true">&#10003;</span> First milestone</li>
+</ol>
+````````````````````````````````
+
+Inline formatting and Hue spans work inside task items:
+
+```````````````````````````````` example
+- [!] Resolve {red: critical} **build** error
+.
+<ul class="hue-task-list">
+<li class="hue-task hue-task-blocked"><span class="hue-task-box hue-task-box-blocked" aria-hidden="true">!</span> Resolve <span class="hue hue-red">critical</span> <strong>build</strong> error</li>
+</ul>
+````````````````````````````````
+
+Unknown marker characters or missing trailing spaces stay literal text:
+
+```````````````````````````````` example
+- [a] Not a task state
+- [x]No space after bracket
+.
+<ul>
+<li>[a] Not a task state</li>
+<li>[x]No space after bracket</li>
+</ul>
+````````````````````````````````
+
+A defined CommonMark shortcut reference link `[x]` takes precedence over task markers:
+
+```````````````````````````````` example
+- [x] linked item
+
+[x]: /done
+.
+<ul>
+<li><a href="/done">x</a> linked item</li>
+</ul>
+````````````````````````````````
+
+# Side-by-side boxes
+
+Boxes on the same lines, separated by at least two spaces, form a row
+of columns (`<div class="hue-columns hue-columns-N">`):
+
+1. **Top row**: Every column must start with a valid Hue box top border (`+--`, `┌─`, `╭─`) preceded by at least two spaces after the previous column.
+2. **Interior rows**: Each column slice `[col_k, col_{k+1})` must start with a side border (`|` or `│`), a bottom border (`+--`, `└──`, `╰──`), or blank padding after that column's bottom border.
+3. **Bottom closure**: All columns must close with a valid bottom border. If any column is unclosed or invalid, the block falls back without matching.
+
+Every line is cut into columns at the positions where the boxes start
+on the top line, so the columns must line up.
+
+Two open ASCII boxes side by side:
+
+```````````````````````````````` example
++-- ok Good practice          +-- warn Bad practice
+| Return early on error.      | Deeply nest conditionals.
+| Keep state immutable.       | Mutate shared globals.
++--                           +--
+.
+<div class="hue-columns hue-columns-2">
+<div class="hue-box hue-box-green" role="note">
+<div class="hue-box-title">Good practice</div>
+<p>Return early on error.
+Keep state immutable.</p>
+</div>
+<div class="hue-box hue-box-orange" role="note">
+<div class="hue-box-title">Bad practice</div>
+<p>Deeply nest conditionals.
+Mutate shared globals.</p>
+</div>
+</div>
+````````````````````````````````
+
+Closed Unicode boxes side by side:
+
+```````````````````````````````` example
+┌─ blue Client ─────┐  ┌─ purple Server ───┐
+│ Sends **JSON**    │  │ Validates schema  │
+└───────────────────┘  └───────────────────┘
+.
+<div class="hue-columns hue-columns-2">
+<div class="hue-box hue-box-blue" role="note">
+<div class="hue-box-title">Client</div>
+<p>Sends <strong>JSON</strong></p>
+</div>
+<div class="hue-box hue-box-purple" role="note">
+<div class="hue-box-title">Server</div>
+<p>Validates schema</p>
+</div>
+</div>
+````````````````````````````````
+
+Three columns side by side:
+
+```````````````````````````````` example
++-- info Plan    +-- warn Build   +-- ok Ship
+| Draft spec     | Run tests      | Tag release
++--              +--              +--
+.
+<div class="hue-columns hue-columns-3">
+<div class="hue-box hue-box-blue" role="note">
+<div class="hue-box-title">Plan</div>
+<p>Draft spec</p>
+</div>
+<div class="hue-box hue-box-orange" role="note">
+<div class="hue-box-title">Build</div>
+<p>Run tests</p>
+</div>
+<div class="hue-box hue-box-green" role="note">
+<div class="hue-box-title">Ship</div>
+<p>Tag release</p>
+</div>
+</div>
+````````````````````````````````
+
+Columns of unequal height (one column closes earlier than the other):
+
+```````````````````````````````` example
++-- ok Short     +-- info Longer
+| One line       | First line
++--              | Second line
+                 +--
+.
+<div class="hue-columns hue-columns-2">
+<div class="hue-box hue-box-green" role="note">
+<div class="hue-box-title">Short</div>
+<p>One line</p>
+</div>
+<div class="hue-box hue-box-blue" role="note">
+<div class="hue-box-title">Longer</div>
+<p>First line
+Second line</p>
+</div>
+</div>
+````````````````````````````````
+
+# Combining constructs
+
+All constructs work inside boxes, side-by-side boxes, lists and links,
+and never inside code:
+
+```````````````````````````````` example
++-- info Keyboard & Progress
+| Press [[Ctrl+K]] to run:
+| [========..] 80%
+| - [x] {+: Ready}
++--
+.
+<div class="hue-box hue-box-blue" role="note">
+<div class="hue-box-title">Keyboard &amp; Progress</div>
+<p>Press <kbd class="hue-kbd">Ctrl+K</kbd> to run:
+<span class="hue-progress hue-progress-blue" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"><span class="hue-progress-track"><span class="hue-progress-fill" style="width:80%"></span></span><span class="hue-progress-label">80%</span></span></p>
+<ul class="hue-task-list">
+<li class="hue-task hue-task-done"><span class="hue-task-box hue-task-box-done" aria-hidden="true">&#10003;</span> <ins class="hue hue-diff-add">Ready</ins></li>
+</ul>
+</div>
+````````````````````````````````
+
+````hue` fenced blocks render all ACC features:
+
+```````````````````````````````` example
+```hue
+- [-] {+: Deploying} with [[Ctrl+Enter]]
+```
+.
+<ul class="hue-task-list">
+<li class="hue-task hue-task-progress"><span class="hue-task-box hue-task-box-progress" aria-hidden="true">&#9680;</span> <ins class="hue hue-diff-add">Deploying</ins> with <kbd class="hue-kbd">Ctrl+Enter</kbd></li>
+</ul>
+````````````````````````````````
+
+Other code fences never parse ACC syntax:
+
+```````````````````````````````` example
+```txt
+- [!] [[Ctrl+C]] {+: raw} [=====.....] 50%
+```
+.
+<pre><code class="language-txt">- [!] [[Ctrl+C]] {+: raw} [=====.....] 50%
+</code></pre>
+````````````````````````````````
+
+Inline code spans never parse ACC syntax:
+
+```````````````````````````````` example
+Code: `[[Ctrl]]`, `{+: add}`, `[====....] 60%`.
+.
+<p>Code: <code>[[Ctrl]]</code>, <code>{+: add}</code>, <code>[====....] 60%</code>.</p>
+````````````````````````````````
+
+Keycaps and diff spans work inside link text:
+
+```````````````````````````````` example
+[Press [[Enter]] to {+: continue}](/start)
+.
+<p><a href="/start">Press <kbd class="hue-kbd">Enter</kbd> to <ins class="hue hue-diff-add">continue</ins></a></p>
+````````````````````````````````
+
+Split boxes containing tasks and diff spans:
+
+```````````````````````````````` example
++-- ! Before              +-- ok After
+| - [!] {-: Slow regex}   | - [x] {+: Linear scan}
++--                       +--
+.
+<div class="hue-columns hue-columns-2">
+<div class="hue-box hue-box-red" role="note">
+<div class="hue-box-title">Before</div>
+<ul class="hue-task-list">
+<li class="hue-task hue-task-blocked"><span class="hue-task-box hue-task-box-blocked" aria-hidden="true">!</span> <del class="hue hue-diff-del">Slow regex</del></li>
+</ul>
+</div>
+<div class="hue-box hue-box-green" role="note">
+<div class="hue-box-title">After</div>
+<ul class="hue-task-list">
+<li class="hue-task hue-task-done"><span class="hue-task-box hue-task-box-done" aria-hidden="true">&#10003;</span> <ins class="hue hue-diff-add">Linear scan</ins></li>
+</ul>
+</div>
+</div>
+````````````````````````````````
+
+Single box with spaces in its title is never mistaken for split columns:
+
+```````````````````````````````` example
++-- info Release   Notes
+| Single column box.
++--
+.
+<div class="hue-box hue-box-blue" role="note">
+<div class="hue-box-title">Release Notes</div>
+<p>Single column box.</p>
+</div>
+````````````````````````````````
+
 # Rendering
 
 ## HTML
@@ -818,6 +1258,11 @@ Other fences are ordinary code blocks:
 | span with hex colors | `span` | `hue` plus a `style` attribute with `color:` and/or `background:` |
 | box | `div` | `hue-box`, plus `hue-box-<color>` when the style has a text color (or else a background color); `role="note"` |
 | box title | `div` | `hue-box-title`, the first child of the box |
+| side-by-side boxes | `div` | `hue-columns hue-columns-<N>` around the `N` boxes |
+| diff span | `ins` / `del` | `hue hue-diff-add` / `hue hue-diff-del` |
+| key cap | `kbd` | `hue-kbd` |
+| progress bar | `span` | `hue-progress hue-progress-<color>`, `role="progressbar"`, `aria-valuenow`, `aria-valuemin="0"`, `aria-valuemax="100"`; holds `span.hue-progress-track > span.hue-progress-fill` (`style="width:N%"`) and `span.hue-progress-label` |
+| task | `li` | `hue-task hue-task-<state>`, starting with `span.hue-task-box.hue-task-box-<state>` (`aria-hidden="true"`); its list gets `hue-task-list` |
 
 The reference stylesheet maps each color to a text color and a
 background shade for light and dark themes. Every pair meets WCAG 2.x

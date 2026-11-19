@@ -1,14 +1,19 @@
 // mdast-util-from-markdown extension: turns Hue tokens into mdast nodes.
 //
 //   hueSpan       { style, children: PhrasingContent[] }      -> <span class="hue hue-red">
+//   hueDiff       { kind: 'add' | 'del', children }           -> <ins class="hue hue-diff-add"> / <del class="hue hue-diff-del">
+//   hueKbd        { value }                                   -> <kbd class="hue-kbd">
+//   hueProgress   { pct, color }                              -> <span class="hue-progress …" role="progressbar">
 //   hueBox        { style, title, corners, children: [hueBoxTitle?, ...FlowContent] }
 //                                                             -> <div class="hue-box hue-box-red" role="note">
 //   hueBoxTitle   { children: PhrasingContent[] }             -> <div class="hue-box-title">
+//   hueColumns    { children: hueBox[] }                      -> <div class="hue-columns hue-columns-2">
 //
-// Each node carries `data.hName` / `data.hProperties`, so remark-rehype
-// renders it without any custom handler.
+// Each node carries `data.hName` / `data.hProperties` (and `data.hChildren`
+// for leaves), so remark-rehype renders it without any custom handler.
 import { fromMarkdown } from 'mdast-util-from-markdown'
-import { parseSpec, parseTop, stripSide, styleClasses } from 'markdown-it-hue/core'
+import { matchProgressBar, parseSpec, parseSplitBoxes, parseTop, stripSide, styleClasses } from 'markdown-it-hue/core'
+import { isDiffSpec } from './syntax.js'
 
 function spanData (style) {
   const { className, style: css } = styleClasses(style, 'span')
@@ -26,6 +31,9 @@ function shiftLines (node, by) {
   if (node.children) for (const c of node.children) shiftLines(c, by)
 }
 
+const text = (value) => ({ type: 'text', value })
+const el = (tagName, properties, children = []) => ({ type: 'element', tagName, properties, children })
+
 /**
  * @param {() => import('mdast-util-from-markdown').Options} getOptions
  *   the parse options in effect (all micromark + mdast extensions), used to
@@ -33,48 +41,94 @@ function shiftLines (node, by) {
  */
 export function hueFromMarkdown (getOptions) {
   return {
-    canContainEols: ['hueSpan'],
-    enter: { hueSpan: enterSpan, hueBox: enterBox },
-    exit: { hueSpanMarker: exitSpanMarker, hueSpan: exitNode, hueBox: exitNode }
+    canContainEols: ['hueSpan', 'hueDiff'],
+    enter: { hueSpan: enterSpan, hueBox: enterBox, hueKbd: enterKbd, hueProgress: enterProgress },
+    exit: { hueSpanMarker: exitSpanMarker, hueSpan: exitNode, hueBox: exitNode, hueKbd: exitNode, hueProgress: exitNode }
   }
 
   function enterSpan (token) {
     this.enter({ type: 'hueSpan', style: null, children: [] }, token)
   }
 
-  // The first marker ("{red: ") carries the style
+  // The first marker ("{red: " or "{+: ") carries the style
   function exitSpanMarker (token) {
     const node = this.stack[this.stack.length - 1]
-    if (node.type !== 'hueSpan' || node.style) return
+    if (node.type !== 'hueSpan' || node.data) return
     const raw = this.sliceSerialize(token)
-    node.style = parseSpec(raw.slice(1, raw.indexOf(':')))
+    const spec = raw.slice(1, raw.indexOf(':'))
+    if (isDiffSpec(spec)) {
+      const kind = spec.trim() === '+' ? 'add' : 'del'
+      node.type = 'hueDiff'
+      node.kind = kind
+      delete node.style
+      node.data = { hName: kind === 'add' ? 'ins' : 'del', hProperties: { className: ['hue', `hue-diff-${kind}`] } }
+      return
+    }
+    node.style = parseSpec(spec)
     node.data = spanData(node.style)
   }
 
-  function enterBox (token) {
-    const lines = token._hueLines
-    const top = parseTop(lines[0].trimEnd())
+  function enterKbd (token) {
+    const raw = this.sliceSerialize(token)
+    const value = raw.slice(2, -2)
+    this.enter({ type: 'hueKbd', value, data: { hName: 'kbd', hProperties: { className: ['hue-kbd'] }, hChildren: [text(value)] } }, token)
+  }
+
+  function enterProgress (token) {
+    const raw = this.sliceSerialize(token)
+    const { pct, color } = matchProgressBar(raw, 0, raw.length)
+    this.enter({
+      type: 'hueProgress',
+      pct,
+      color,
+      data: {
+        hName: 'span',
+        hProperties: { className: ['hue-progress', `hue-progress-${color}`], role: 'progressbar', ariaValueNow: String(pct), ariaValueMin: '0', ariaValueMax: '100' },
+        hChildren: [
+          el('span', { className: ['hue-progress-track'] }, [el('span', { className: ['hue-progress-fill'], style: `width:${pct}%` })]),
+          el('span', { className: ['hue-progress-label'] }, [text(`${pct}%`)])
+        ]
+      }
+    }, token)
+  }
+
+  // One box node from its parsed top line and interior lines (sides stripped).
+  function boxNode (top, inner, line) {
     const options = getOptions()
-    const interior = fromMarkdown(lines.slice(1, -1).map(stripSide).join('\n'), options)
-    for (const child of interior.children) shiftLines(child, token.start.line)
+    const interior = fromMarkdown(inner.join('\n'), options)
+    for (const child of interior.children) shiftLines(child, line)
 
     const children = interior.children
     if (top.title) {
       const parsed = fromMarkdown(top.title, options).children[0]
-      const phrasing = parsed && parsed.type === 'paragraph' ? parsed.children : [{ type: 'text', value: top.title }]
-      for (const c of phrasing) shiftLines(c, token.start.line - 1)
+      const phrasing = parsed && parsed.type === 'paragraph' ? parsed.children : [text(top.title)]
+      for (const c of phrasing) shiftLines(c, line - 1)
       children.unshift({ type: 'hueBoxTitle', children: phrasing, data: { hName: 'div', hProperties: { className: ['hue-box-title'] } } })
     }
 
     const { className } = styleClasses(top.style, 'box')
-    this.enter({
+    return {
       type: 'hueBox',
       style: top.style,
       title: top.title || null,
       corners: top.corners,
       children,
       data: { hName: 'div', hProperties: { className, role: 'note' } }
-    }, token)
+    }
+  }
+
+  function enterBox (token) {
+    const lines = token._hueLines
+    if (token._hueSplit) {
+      const { cols } = parseSplitBoxes(lines)
+      this.enter({
+        type: 'hueColumns',
+        children: cols.map((col) => boxNode(col.top, col.inner, token.start.line)),
+        data: { hName: 'div', hProperties: { className: ['hue-columns', `hue-columns-${cols.length}`] } }
+      }, token)
+      return
+    }
+    this.enter(boxNode(parseTop(lines[0].trimEnd()), lines.slice(1, -1).map(stripSide), token.start.line), token)
   }
 
   function exitNode (token) {

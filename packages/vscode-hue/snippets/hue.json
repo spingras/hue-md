@@ -56,9 +56,9 @@
   "Hue Split Boxes (Side-by-Side)": {
     "prefix": ["split", "columns", "hue-split"],
     "body": [
-      "+-- ${1:ok} ${2:Left Title}          +-- ${3:warn} ${4:Right Title}",
-      "| ${5:Left content}                   | ${6:Right content}",
-      "+--                                 +--"
+      "+-- ${1:ok} ${2:Left title}                 +-- ${3:warn} ${4:Right title}",
+      "| ${5:Left content}                    | ${6:Right content}",
+      "+--                               +--"
     ],
     "description": "Insert two side-by-side Hue boxes"
   },

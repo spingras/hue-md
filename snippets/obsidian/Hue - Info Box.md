@@ -1,3 +1,3 @@
-+-- info <% tp.file.cursor(1) %>
-| <% tp.file.cursor(2) %>
++-- info Title
+| Content
 +--

@@ -3,7 +3,7 @@
   "name": "Hue MD",
   "version": "0.2.2",
   "minAppVersion": "1.0.0",
-  "description": "Readable-raw inline color spans ({ok: text}) and effortless callout boxes (+-- info, ok, note, warn, !) for Markdown.",
+  "description": "Readable-raw Markdown extras: colored spans, diff spans, key caps, progress bars, multi-state tasks and drawn callout boxes, single or side by side.",
   "author": "spingras",
   "authorUrl": "https://github.com/spingras/hue-md",
   "isDesktopOnly": false

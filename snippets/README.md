@@ -1,12 +1,20 @@
-# Hue Markdown Snippets for All Editors
+# Hue Markdown snippets for every editor
 
-Effortlessly author Hue callout boxes across any editor or platform.
+Type a trigger and press <kbd>Tab</kbd> to insert Hue MD v0.2 syntax:
 
-Type `info`, `warn`, `ok`, or `note` and press <kbd>Tab</kbd> (or <kbd>Enter</kbd>) to insert a perfectly formatted box.
+| Trigger | Inserts |
+|---|---|
+| `info` / `tip`, `ok` / `success`, `warn` / `warning`, `note`, `danger` / `caution` | a box in that color |
+| `box` | a box, color to pick |
+| `split` / `columns` | two boxes side by side |
+| `rbox` | a rounded Unicode box (`╭──` … `╰──`) |
+| `span` / `color` | a colored span `{info: text}` |
+| `diff` | a diff span `{+: added}` / `{-: removed}` |
+| `kbd` / `key` | a key cap `[[Ctrl+Shift+P]]` |
+| `progress` / `bar` | a progress bar `[========..] 80%` |
+| `task` | a task `- [ ]`, `- [-]`, `- [!]`, `- [?]` or `- [x]` |
 
-## Syntax Standard
-
-Hue boxes follow the standardized minimal open format:
+Every trigger also works with a `hue-` prefix (`hue-info`, `hue-split`, …).
 
 ```markdown
 +-- info Pro Tip
@@ -15,43 +23,25 @@ Hue boxes follow the standardized minimal open format:
 +--
 ```
 
-Semantic callout tokens:
-- `info` / `tip` -> Blue box (GitHub `[!NOTE]`)
-- `ok` / `success` -> Green box (GitHub `[!TIP]`)
-- `warn` / `warning` -> Orange box (GitHub `[!WARNING]`)
-- `note` / `important` -> Purple box (GitHub `[!IMPORTANT]`)
-- `danger` / `!` -> Red box (GitHub `[!CAUTION]`)
+Box colors: `info` blue, `ok` green, `warn` orange, `note` purple, `!` or `danger` red, `muted` gray, or any palette color (`red`, `orange`, `yellow`, `green`, `blue`, `purple`, `gray`). Side-by-side boxes need their columns lined up: each box starts at the same column on every line.
 
----
+All files here are generated from the VS Code snippets (`packages/vscode-hue/snippets/hue.json`) by `node scripts/build-snippets.js`; edit that file, not these. `npm test` checks they are up to date and that each snippet's default text renders as Hue.
 
-## Editor Support
+## Editors
 
-### 1. VS Code / Cursor / Windsurf / VSCodium
-Built directly into the [Hue Markdown Extension](../packages/vscode-hue/).
-- Snippets available out of the box (`info` + <kbd>Tab</kbd>, `warn` + <kbd>Tab</kbd>, `ok` + <kbd>Tab</kbd>, `note` + <kbd>Tab</kbd>).
-- Pressing <kbd>Enter</kbd> inside a box automatically continues the `| ` prefix on the next line.
-- Commands: `Hue: Insert Callout Box` and `Hue: Wrap Selection in Box`.
+### VS Code / Cursor / Windsurf / VSCodium
+Built into the [Hue MD extension](../packages/vscode-hue/), with Enter continuing `| ` inside a box.
 
-### 2. Notepad++
-Built directly into the [Hue Markdown Plugin](../packages/notepadpp-hue/).
-- Menu items under **Plugins > Hue Markdown**:
-  - `Insert Info Box (+-- info)`
-  - `Insert Warn Box (+-- warn)`
-  - `Insert OK Box (+-- ok)`
-  - `Insert Note Box (+-- note)`
-- Side-by-side live preview updates automatically in real-time.
+### Notepad++
+Built into the [Hue MD plugin](../packages/notepadpp-hue/): **Plugins → Hue Markdown**.
 
-### 3. Sublime Text
-Copy the files in [`snippets/sublime/`](./sublime) into your Sublime Text `Packages/User/` directory:
-- `info` + <kbd>Tab</kbd>
-- `warn` + <kbd>Tab</kbd>
-- `ok` + <kbd>Tab</kbd>
-- `note` + <kbd>Tab</kbd>
-- `danger` + <kbd>Tab</kbd>
+### Sublime Text
+Copy the files in [`sublime/`](./sublime) into your Sublime Text `Packages/User/` folder (**Preferences → Browse Packages…**). Triggers use the first name in the table (`info`, `split`, `kbd`, …).
 
-### 4. Neovim / Vim
-- **UltiSnips**: Copy [`snippets/ultisnips/hue.snippets`](./ultisnips/hue.snippets) to your UltiSnips snippet directory.
-- **LuaSnip**: Require [`snippets/luasnip/hue.lua`](./luasnip/hue.lua) in your Neovim configuration.
+### Neovim / Vim
+- **UltiSnips**: copy [`ultisnips/hue.snippets`](./ultisnips/hue.snippets) to your UltiSnips snippet folder as `markdown.snippets` (or add `extends hue`).
+- **LuaSnip**: copy [`luasnip/hue.lua`](./luasnip/hue.lua) into your config's `lua/` folder and add `require("luasnip").add_snippets("markdown", require("hue"))`.
+- The [Neovim plugin](../packages/nvim-hue/) adds highlighting and `:HueBox`.
 
-### 5. Obsidian
-Copy the markdown templates in [`snippets/obsidian/`](./obsidian) to your Obsidian templates vault folder.
+### Obsidian
+Copy the notes in [`obsidian/`](./obsidian) into your vault's templates folder (**Settings → Templates → Template folder location**), then use **Templates: Insert template**. The [Obsidian plugin](../packages/obsidian-hue/) renders them and has insert commands of its own.

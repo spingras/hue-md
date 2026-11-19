@@ -13,7 +13,7 @@
 // parsed as a full nested document: lists, quotes, code and nested boxes.
 import { autolink, characterEscape, codeText, htmlText } from 'micromark-core-commonmark'
 import { markdownLineEnding, markdownSpace } from 'micromark-util-character'
-import { MAX_SPEC_LEN, parseSpec, parseTop, BOX_BOTTOM } from 'markdown-it-hue/core'
+import { MAX_SPEC_LEN, parseSpec, parseTop, BOX_BOTTOM, BOX_SIDE, findBoxColumnStarts, isValidKeycap, matchProgressBar } from 'markdown-it-hue/core'
 
 const EOF = null
 const LEFT_BRACE = 123
@@ -33,6 +33,9 @@ const BOTTOM_CORNERS = [0x2514, 0x2570, PLUS] // └ ╰ +
 const char = (code) => (code === -2 || code === -1 ? ' ' : code < 0 ? '' : String.fromCodePoint(code))
 
 // ---------------------------------------------------------------- spans
+
+// `{+: added}` and `{-: removed}`: a span whose spec is a single + or -.
+export const isDiffSpec = (spec) => /^\s*[+-]\s*$/.test(spec)
 
 const hueSpan = { name: 'hueSpan', tokenize: tokenizeSpan }
 
@@ -55,7 +58,8 @@ function tokenizeSpan (effects, ok, nok) {
     }
     function head (code) {
       if (code === COLON) {
-        if (!parseSpec(spec)) return nok(code)
+        // a color style, or + / - for a diff span
+        if (!parseSpec(spec) && !isDiffSpec(spec)) return nok(code)
         effects.consume(code)
         return spaces
       }
@@ -239,12 +243,213 @@ function tokenizeBox (effects, ok, nok) {
   }
 }
 
+// ---------------------------------------------------------------- v0.2: key caps ([[Ctrl+C]])
+
+const LEFT_BRACKET = 91
+const RIGHT_BRACKET = 93
+const LEFT_PAREN = 40
+const isAsciiAlnum = (c) => (c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122)
+
+const hueKbd = { name: 'hueKbd', tokenize: tokenizeKbd, add: 'before' }
+
+function tokenizeKbd (effects, ok, nok) {
+  const self = this
+  let key = ''
+  let length = 0
+
+  return function start (code) {
+    const prev = self.previous
+    if (prev === LEFT_BRACKET || prev === RIGHT_BRACKET || isAsciiAlnum(prev)) return nok(code)
+    effects.enter('hueKbd')
+    effects.enter('hueKbdMarker')
+    effects.consume(code) // [
+    return second
+  }
+  function second (code) {
+    if (code !== LEFT_BRACKET) return nok(code)
+    effects.consume(code)
+    effects.exit('hueKbdMarker')
+    effects.enter('hueKbdText')
+    return inside
+  }
+  function inside (code) {
+    if (code === RIGHT_BRACKET) {
+      effects.exit('hueKbdText')
+      effects.enter('hueKbdMarker')
+      effects.consume(code)
+      return close
+    }
+    if (code === EOF || markdownLineEnding(code) || code === LEFT_BRACKET || ++length > 32) return nok(code)
+    key += char(code)
+    effects.consume(code)
+    return inside
+  }
+  function close (code) {
+    if (code !== RIGHT_BRACKET) return nok(code)
+    effects.consume(code)
+    effects.exit('hueKbdMarker')
+    return after
+  }
+  // `[[Key]]` directly followed by `]` or `(` is something else (a link, nested brackets)
+  function after (code) {
+    if (code === RIGHT_BRACKET || code === LEFT_PAREN || !isValidKeycap(key)) return nok(code)
+    effects.exit('hueKbd')
+    return ok(code)
+  }
+}
+
+// ---------------------------------------------------------------- v0.2: progress bars ([======....] 60%)
+
+const BAR_CHARS = new Set([...'=#■█.-_░ '].map((c) => c.codePointAt(0)))
+const isDigit = (c) => c >= 48 && c <= 57
+
+const hueProgress = { name: 'hueProgress', tokenize: tokenizeProgress, add: 'before' }
+
+// Consumes `[bar] NN%` and lets the shared matchProgressBar (src/core.js) decide.
+function tokenizeProgress (effects, ok, nok) {
+  const self = this
+  let raw = ''
+  let barLength = 0
+  let digits = 0
+
+  return function start (code) {
+    if (self.previous === LEFT_BRACKET) return nok(code)
+    effects.enter('hueProgress')
+    raw += '['
+    effects.consume(code)
+    return bar
+  }
+  function bar (code) {
+    if (code === RIGHT_BRACKET) { raw += ']'; effects.consume(code); return spaces }
+    if (!BAR_CHARS.has(code) || ++barLength > 80) return nok(code)
+    raw += char(code)
+    effects.consume(code)
+    return bar
+  }
+  function spaces (code) {
+    if (markdownSpace(code)) { raw += char(code); effects.consume(code); return spaces }
+    return number(code)
+  }
+  function number (code) {
+    if (isDigit(code) && digits < 3) { digits++; raw += char(code); effects.consume(code); return number }
+    if (code !== 37 /* % */ || digits === 0) return nok(code)
+    raw += '%'
+    effects.consume(code)
+    return after
+  }
+  function after (code) {
+    const hit = matchProgressBar(raw + (code === LEFT_PAREN ? '(' : code === LEFT_BRACKET ? '[' : ''), 0, raw.length + 1)
+    if (!hit || hit.endPos !== raw.length) return nok(code)
+    effects.exit('hueProgress')
+    return ok(code)
+  }
+}
+
+// ---------------------------------------------------------------- v0.2: side-by-side boxes
+
+// Boxes on the same lines, two or more spaces apart. Every line is cut into
+// columns where the boxes start on the top line (src/core.js parseSplitBoxes);
+// mdast building turns the recorded lines into hueColumns of hueBoxes.
+const hueSplitBox = { name: 'hueSplitBox', tokenize: tokenizeSplitBox, concrete: true }
+
+function tokenizeSplitBox (effects, ok, nok) {
+  const self = this
+  const lines = []
+  let line = ''
+  let box
+  let startColumn
+  let starts
+  let closed
+
+  return function start (code) {
+    startColumn = self.now().column
+    box = effects.enter('hueBox')
+    effects.enter('hueBoxLine')
+    return top(code)
+  }
+
+  function top (code) {
+    if (code === EOF || markdownLineEnding(code)) {
+      effects.exit('hueBoxLine')
+      starts = findBoxColumnStarts(line)
+      if (code === EOF || starts.length < 2) return nok(code)
+      for (let k = 0; k < starts.length; k++) {
+        if (!parseTop(line.slice(starts[k], starts[k + 1]).trimEnd())) return nok(code)
+      }
+      closed = starts.map(() => false)
+      lines.push(line)
+      return lineEnd(code)
+    }
+    line += char(code)
+    effects.consume(code)
+    return top
+  }
+
+  function lineEnd (code) {
+    effects.enter('lineEnding')
+    effects.consume(code)
+    effects.exit('lineEnding')
+    return lineStart
+  }
+
+  function lineStart (code) {
+    if (self.parser.lazy[self.now().line] || code === EOF || markdownLineEnding(code)) return nok(code)
+    if (markdownSpace(code)) {
+      effects.enter('linePrefix')
+      return indent(code)
+    }
+    return content(code)
+  }
+  function indent (code) {
+    if (markdownSpace(code)) { effects.consume(code); return indent }
+    effects.exit('linePrefix')
+    if (code === EOF || markdownLineEnding(code)) return nok(code)
+    return content(code)
+  }
+
+  // Column positions count from where the top line starts.
+  function content (code) {
+    line = ' '.repeat(Math.max(0, self.now().column - startColumn))
+    effects.enter('hueBoxLine')
+    return rest(code)
+  }
+
+  function rest (code) {
+    if (code === EOF || markdownLineEnding(code)) {
+      effects.exit('hueBoxLine')
+      for (let k = 0; k < starts.length; k++) {
+        const seg = (k < starts.length - 1 ? line.slice(starts[k], starts[k + 1]) : line.slice(starts[k])).trimEnd()
+        if (closed[k]) {
+          if (seg.trim() !== '') return nok(code)
+        } else if (BOX_BOTTOM.test(seg)) {
+          closed[k] = true
+        } else if (!BOX_SIDE.test(seg)) {
+          return nok(code)
+        }
+      }
+      lines.push(line)
+      if (closed.every(Boolean)) {
+        box._hueLines = lines
+        box._hueSplit = true
+        effects.exit('hueBox')
+        return ok(code)
+      }
+      if (code === EOF) return nok(code)
+      return lineEnd(code)
+    }
+    line += char(code)
+    effects.consume(code)
+    return rest
+  }
+}
+
 /**
  * micromark extension for Hue Markdown.
  * @returns {import('micromark-util-types').Extension}
  */
 export function hue () {
   const flow = {}
-  for (const c of TOP_CORNERS) flow[c] = hueBox
-  return { text: { [LEFT_BRACE]: hueSpan }, flow }
+  // Side-by-side boxes first, as in the markdown-it plugin
+  for (const c of TOP_CORNERS) flow[c] = [hueSplitBox, hueBox]
+  return { text: { [LEFT_BRACE]: hueSpan, [LEFT_BRACKET]: [hueProgress, hueKbd] }, flow }
 }

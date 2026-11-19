@@ -1,0 +1,18 @@
+/* GitHub-only layout, appended after the shared Hue stylesheet. */
+
+/* Hue task states in GitHub lists: no bullet, the box hangs where GitHub puts its checkboxes. */
+.markdown-body li.hue-task { display: list-item; list-style-type: none; }
+.markdown-body ul.hue-task-list { padding-left: 2em; }
+.markdown-body li.hue-task > .hue-task-box,
+.markdown-body li.hue-task > p > .hue-task-box:first-child {
+  width: 1.1em;
+  height: 1.1em;
+  margin: 0 0.3em 0.25em -1.5em;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+/* Box lines end in a hard break (<br>), so newlines need no pre-line here. */
+.markdown-body .hue-box-body p { white-space: normal; }
+.markdown-body .hue-box-body > :first-child { margin-top: 0; }
+.markdown-body .hue-box-body > :last-child { margin-bottom: 0; }
+.markdown-body .hue-kbd { box-shadow: none; }

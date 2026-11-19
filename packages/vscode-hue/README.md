@@ -2,9 +2,11 @@
 
 Hue MD adds color spans, diff spans, key caps, progress bars, multi-state tasks, and callout boxes (single or side-by-side) to Markdown (`.hue.md` and `.md`). You get a live side-by-side preview, editor highlighting, snippets, and 1-click GitHub Alert export.
 
-![Hue MD Side-by-Side Live Preview](https://raw.githubusercontent.com/spingras/hue-md/main/assets/hero-dark.jpg)
+![Typing Hue MD with the live preview next to it, then viewing the same file in the terminal](https://raw.githubusercontent.com/spingras/hue-md/main/assets/demo.gif)
 
 [Interactive Playground](https://spingras.github.io/hue-md/) · [GitHub Repository](https://github.com/spingras/hue-md)
+
+![Hue MD Side-by-Side Live Preview](https://raw.githubusercontent.com/spingras/hue-md/main/assets/hero-dark.jpg)
 
 ---
 

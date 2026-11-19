@@ -46,7 +46,9 @@ for (const ex of accExamples) {
 // ------------------------------------------------------------ Gate 2: Backward Compatibility with v0.1 Spec
 
 const v1SpecText = readFileSync(new URL('../spec/spec.md', import.meta.url), 'utf8')
-const v1Examples = parseSpecExamples(v1SpecText)
+// v0.1 examples: those before the first v0.2 section (# Diff spans)
+const v1End = v1SpecText.split('\n').indexOf('# Diff spans') + 1
+const v1Examples = parseSpecExamples(v1SpecText).filter((ex) => ex.line < v1End)
 
 test('ACC backward compatibility: all 58 Hue v0.1 spec examples pass unchanged with hueNext', () => {
   assert.equal(v1Examples.length, 58)

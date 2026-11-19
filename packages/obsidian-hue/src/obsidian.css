@@ -1,0 +1,24 @@
+/* Obsidian-only layout, appended after the shared Hue stylesheet. */
+
+/* Box bodies are rendered by Obsidian into section divs: trim the outer margins. */
+.hue-box-body > :first-child,
+.hue-box-body > :first-child > :first-child { margin-top: 0; }
+.hue-box-body > :last-child,
+.hue-box-body > :last-child > :last-child { margin-bottom: 0; }
+/* Box lines end in a hard break (<br>), so newlines need no pre-line here. */
+.hue-box p { white-space: normal; }
+.hue-fence > .hue-box:first-child { margin-top: 0; }
+
+/* Hue task states inside Obsidian task lists: take the checkbox's place and size. */
+li.task-list-item.hue-task { display: list-item; }
+li.task-list-item.hue-task > .hue-task-box,
+li.task-list-item.hue-task > p > .hue-task-box:first-child {
+  width: var(--checkbox-size, 1.1em);
+  height: var(--checkbox-size, 1.1em);
+  margin-inline-start: calc(var(--checkbox-size, 1.1em) * -1.5);
+  margin-inline-end: var(--checkbox-margin-inline-end, 0.4em);
+  vertical-align: middle;
+  box-sizing: border-box;
+  position: relative;
+  top: -0.1em;
+}

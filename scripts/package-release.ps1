@@ -43,7 +43,8 @@ Copy-Item (Join-Path $repoRoot "packages\notepadpp-hue\README.md") (Join-Path $n
 Compress-Archive -Path "$nppStage\*" -DestinationPath (Join-Path $releaseDir "hue-md-npp-x64.zip") -Force
 Remove-Item $nppStage -Recurse -Force
 
-# 4. GitHub UserScript (hue-md.user.js)
+# 4. GitHub UserScript (hue-md.user.js), rebuilt together with the extension from packages/github-hue/src
+& node (Join-Path $repoRoot "packages\github-hue\scripts\build.mjs")
 Copy-Item (Join-Path $repoRoot "packages\github-hue\userscript\hue-md.user.js") (Join-Path $releaseDir "hue-md.user.js") -Force
 
 # 5. GitHub Browser Extension (hue-md-browser.zip)
@@ -51,12 +52,26 @@ $extDir = Join-Path $repoRoot "packages\github-hue\extension"
 Compress-Archive -Path "$extDir\*" -DestinationPath (Join-Path $releaseDir "hue-md-browser.zip") -Force
 
 # 6. Obsidian Plugin (hue-md-obsidian.zip)
+#    Rebuild first, then zip only what Obsidian loads (plus the README with the install steps),
+#    not src/, test/ or node_modules/.
 $obsDir = Join-Path $repoRoot "packages\obsidian-hue"
-Compress-Archive -Path "$obsDir\*" -DestinationPath (Join-Path $releaseDir "hue-md-obsidian.zip") -Force
+& node (Join-Path $obsDir "scripts\build.mjs")
+$obsFiles = @("main.js", "manifest.json", "styles.css", "README.md") | ForEach-Object { Join-Path $obsDir $_ }
+Compress-Archive -Path $obsFiles -DestinationPath (Join-Path $releaseDir "hue-md-obsidian.zip") -Force
+
+# 6b. Joplin Plugin (io.github.spingras.hue-md.jpl), built by `npm run dist` in packages/joplin-hue
+$jpl = Join-Path $repoRoot "packages\joplin-hue\publish\io.github.spingras.hue-md.jpl"
+if (Test-Path $jpl) {
+    Copy-Item $jpl (Join-Path $releaseDir "io.github.spingras.hue-md.jpl") -Force
+} else {
+    Write-Warning "Joplin plugin not built: run 'npm install && npm run dist' in packages/joplin-hue first"
+}
 
 # 7. Neovim Plugin (hue-md-nvim.zip)
+#    Only the plugin itself (lua/, plugin/) and the README, not test/.
 $nvimDir = Join-Path $repoRoot "packages\nvim-hue"
-Compress-Archive -Path "$nvimDir\*" -DestinationPath (Join-Path $releaseDir "hue-md-nvim.zip") -Force
+$nvimFiles = @("lua", "plugin", "README.md") | ForEach-Object { Join-Path $nvimDir $_ }
+Compress-Archive -Path $nvimFiles -DestinationPath (Join-Path $releaseDir "hue-md-nvim.zip") -Force
 
 # 8. Universal Editor Snippets & Emacs Mode (hue-md-snippets.zip)
 $snipStage = Join-Path $releaseDir "_stage_snippets"

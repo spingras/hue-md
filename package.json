@@ -36,7 +36,7 @@
     "spec/spec.md"
   ],
   "scripts": {
-    "test": "node --test \"test/**/*.test.js\" \"packages/md-hue/test/**/*.test.js\" \"packages/vscode-hue/test/**/*.test.js\" \"packages/github-hue/test/**/*.test.js\"",
+    "test": "node --test \"test/**/*.test.js\" \"packages/md-hue/test/**/*.test.js\" \"packages/vscode-hue/test/**/*.test.js\" \"packages/github-hue/test/**/*.test.js\" \"packages/obsidian-hue/test/**/*.test.js\" \"packages/nvim-hue/test/**/*.test.js\"",
     "build:css": "node scripts/build-css.js",
     "demo": "node scripts/build-hero.js && node scripts/generate-readme-assets.js && node scripts/render-demo.js",
     "build:screenshots": "node scripts/build-screenshots.js",
@@ -61,6 +61,8 @@
     "markdown-it": "^14.1.0"
   },
   "devDependencies": {
-    "esbuild": "0.24.2"
+    "esbuild": "0.24.2",
+    "fengari": "0.1.4",
+    "jsdom": "25.0.1"
   }
 }
