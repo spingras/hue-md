@@ -4,11 +4,7 @@
 
 <p align="center">
   <a href="https://spingras.github.io/hue-md/">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
-      <source media="(prefers-color-scheme: light)" srcset="assets/hero-light.svg">
-      <img alt="Hue MD: Raw plain text on the left, rendered color spans and boxes on the right" src="assets/hero-light.svg" width="100%">
-    </picture>
+    <img alt="Typing Hue MD in an editor with the live preview next to it, then viewing the same file in the terminal with hue-md view" src="assets/demo.gif" width="100%">
   </a>
 </p>
 
@@ -30,7 +26,11 @@ The raw text stays readable in plain editors, terminal diffs, and AI prompts.
 
 <p align="center">
   <a href="https://spingras.github.io/hue-md/">
-    <img alt="Typing Hue MD in an editor with the live preview next to it, then viewing the same file in the terminal with hue-md view" src="assets/demo.gif" width="100%">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="assets/hero-light.svg">
+      <img alt="Hue MD: Raw plain text on the left, rendered color spans and boxes on the right" src="assets/hero-light.svg" width="100%">
+    </picture>
   </a>
 </p>
 

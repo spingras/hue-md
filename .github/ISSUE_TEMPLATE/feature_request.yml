@@ -1,0 +1,22 @@
+name: Feature request
+description: Suggest new syntax, an editor integration, or an improvement.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What do you want to do?
+      description: Describe what you're trying to write or show, and what gets in the way today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: If it's new syntax, show how the raw text would look.
+      render: markdown
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Anything else?
+      description: Workarounds you use now, or how other tools handle it.

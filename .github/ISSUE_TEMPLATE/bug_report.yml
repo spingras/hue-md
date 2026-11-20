@@ -1,0 +1,50 @@
+name: Bug report
+description: Something renders wrong, crashes, or doesn't work as documented.
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where does it happen?
+      multiple: true
+      options:
+        - VS Code, Cursor, or Windsurf
+        - Obsidian
+        - Neovim
+        - Emacs
+        - Notepad++
+        - Joplin
+        - GitHub (browser extension or userscript)
+        - npm CLI or library
+        - remark plugin
+        - Claude Code plugin
+        - Playground
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Hue MD version
+      placeholder: e.g. 0.2.3
+  - type: textarea
+    id: source
+    attributes:
+      label: Hue source
+      description: The smallest piece of `.hue.md` text that shows the problem.
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened instead?
+      description: Add a screenshot if it helps.
+    validations:
+      required: true

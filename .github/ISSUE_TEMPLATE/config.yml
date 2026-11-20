@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Try it in the playground
+    url: https://spingras.github.io/hue-md/
+    about: Test Hue MD syntax in your browser before you report a rendering problem.
+  - name: Report a security problem
+    url: https://github.com/spingras/hue-md/security/advisories/new
+    about: Report vulnerabilities privately, not in a public issue.
