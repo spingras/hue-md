@@ -394,6 +394,17 @@ function styleAttrs (style, opts, kind) {
   return attrs
 }
 
+// Parse box interior lines as Markdown. block.parse numbers lines from 0 within the
+// interior, so shift the new tokens' maps to file lines (interior line 0 is startLine + 1).
+function parseInterior (state, lines, firstLine) {
+  const from = state.tokens.length
+  state.md.block.parse(lines.join('\n'), state.md, state.env, state.tokens)
+  for (let i = from; i < state.tokens.length; i++) {
+    const m = state.tokens[i].map
+    if (m) state.tokens[i].map = [m[0] + firstLine, m[1] + firstLine]
+  }
+}
+
 function hueSplitBox (opts) {
   return function hue_split_box (state, startLine, endLine, silent) {
     if (state.sCount[startLine] - state.blkIndent >= 4) return false
@@ -463,7 +474,7 @@ function hueSplitBox (opts) {
         state.push('hue_box_title_close', 'div', -1)
       }
 
-      state.md.block.parse(col.inner.join('\n'), state.md, state.env, state.tokens)
+      parseInterior(state, col.inner, startLine + 1)
       state.push('hue_box_close', 'div', -1).block = true
     }
 
@@ -509,7 +520,7 @@ function hueBox (opts) {
       state.push('hue_box_title_close', 'div', -1)
     }
 
-    state.md.block.parse(inner.join('\n'), state.md, state.env, state.tokens)
+    parseInterior(state, inner, startLine + 1)
 
     state.push('hue_box_close', 'div', -1).block = true
     state.line = line + 1

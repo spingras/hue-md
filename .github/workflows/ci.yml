@@ -24,8 +24,34 @@ jobs:
           npm ci
           npm test
 
+      - name: remark-hue tests
+        working-directory: packages/remark-hue
+        run: |
+          npm ci
+          npm test
+
+      - name: Joplin plugin tests (renders the built content script through @joplin/renderer)
+        working-directory: packages/joplin-hue
+        run: |
+          npm ci
+          npm run dist
+          npm test
+
       - name: Main matches the latest release (download links and shipped files)
         if: github.event_name == 'push'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node scripts/check-release-sync.js
+
+  emacs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Emacs
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends emacs-nox
+
+      - name: Emacs ERT tests
+        working-directory: packages/emacs-hue
+        run: emacs -Q --batch -L . -l hue-markdown-mode.el -l hue-markdown-test.el -f ert-run-tests-batch-and-exit

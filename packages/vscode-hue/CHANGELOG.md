@@ -2,6 +2,11 @@
 
 All notable changes to the `hue-md` extension are documented in this file.
 
+## [0.2.4] - 2026-11-22
+
+### Fixed
+- The Markdown preview scrolls to the right line when the cursor is inside a box (lines inside boxes kept their position relative to the box instead of the file)
+
 ## [0.2.3] - 2026-11-19
 
 ### Fixed

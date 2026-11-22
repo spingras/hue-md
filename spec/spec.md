@@ -1,6 +1,6 @@
 ---
 title: Hue Markdown Spec
-version: 0.2.3
+version: 0.2.4
 date: 2026-11-15
 license: CC-BY-SA 4.0
 ---
@@ -647,6 +647,14 @@ The interior holds any blocks:
 </code></pre>
 </div>
 ````````````````````````````````
+
+Each interior line shows on its own line, also inside a paragraph.
+In HTML the lines stay one paragraph joined by a newline, and the
+reference stylesheet sets `white-space: pre-line` on box paragraphs so
+the browser shows that newline as a line break. The GFM downgrade
+writes a hard line break (two trailing spaces) and terminals keep the
+lines as drawn. So `│ one` and `│ two` render as one `<p>` that
+holds both lines and displays them as two lines.
 
 Boxes nest:
 

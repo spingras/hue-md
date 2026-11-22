@@ -6112,6 +6112,14 @@ function styleAttrs(style, opts, kind) {
   if (css2) attrs.push(["style", css2]);
   return attrs;
 }
+function parseInterior(state, lines, firstLine) {
+  const from = state.tokens.length;
+  state.md.block.parse(lines.join("\n"), state.md, state.env, state.tokens);
+  for (let i = from; i < state.tokens.length; i++) {
+    const m = state.tokens[i].map;
+    if (m) state.tokens[i].map = [m[0] + firstLine, m[1] + firstLine];
+  }
+}
 function hueSplitBox(opts) {
   return function hue_split_box(state, startLine, endLine, silent) {
     if (state.sCount[startLine] - state.blkIndent >= 4) return false;
@@ -6174,7 +6182,7 @@ function hueSplitBox(opts) {
         il.children = [];
         state.push("hue_box_title_close", "div", -1);
       }
-      state.md.block.parse(col.inner.join("\n"), state.md, state.env, state.tokens);
+      parseInterior(state, col.inner, startLine + 1);
       state.push("hue_box_close", "div", -1).block = true;
     }
     state.push("hue_columns_close", "div", -1).block = true;
@@ -6217,7 +6225,7 @@ function hueBox(opts) {
       il.children = [];
       state.push("hue_box_title_close", "div", -1);
     }
-    state.md.block.parse(inner.join("\n"), state.md, state.env, state.tokens);
+    parseInterior(state, inner, startLine + 1);
     state.push("hue_box_close", "div", -1).block = true;
     state.line = line + 1;
     return true;

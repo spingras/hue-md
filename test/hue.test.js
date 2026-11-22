@@ -192,3 +192,32 @@ for (const mode of ['light', 'dark']) {
     })
   }
 }
+
+// ------------------------------------------------------------ source line maps
+
+const maps = (src) => md.parse(src, {}).filter((t) => t.map && t.type !== 'inline').map((t) => `${t.type} ${t.map[0]}-${t.map[1]}`)
+
+test('box interior tokens map to their lines in the file', () => {
+  const src = 'intro\n\n+-- ok T\n| para a\n|\n| para b\n+--\n'
+  assert.deepEqual(maps(src), [
+    'paragraph_open 0-1',
+    'hue_box_open 2-7',
+    'paragraph_open 3-4',
+    'paragraph_open 5-6'
+  ])
+})
+
+test('split box and nested box interiors map to their lines in the file', () => {
+  const split = 'x\n\n+-- ok A    +-- warn B\n| a1        | b1\n| - item    | b2\n+--         +--\n'
+  assert.deepEqual(maps(split), [
+    'paragraph_open 0-1',
+    'hue_columns_open 2-6',
+    'hue_box_open 2-6', 'paragraph_open 3-4', 'bullet_list_open 4-5', 'list_item_open 4-5', 'paragraph_open 4-5',
+    'hue_box_open 2-6', 'paragraph_open 3-5'
+  ])
+  const nested = '+-- ok Outer\n| top\n| ┌─ warn Inner\n| │ deep\n| └─\n+--\n'
+  assert.deepEqual(maps(nested), [
+    'hue_box_open 0-6', 'paragraph_open 1-2', 'hue_box_open 2-5', 'paragraph_open 3-4'
+  ])
+})
+
