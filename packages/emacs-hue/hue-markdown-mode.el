@@ -939,9 +939,14 @@ on both Desktop Emacs and Android Emacs."
     ("\\*\\*[^*\n]+\\*\\*" . 'bold))
   "Fallback Markdown font-lock rules when `markdown-mode' is not installed.")
 
+;; `define-derived-mode' needs a plain mode name as parent, so pick the parent
+;; once here: `markdown-mode' when it is installed, else `text-mode'.
+(defalias 'hue-markdown--parent-mode
+  (if (fboundp 'markdown-mode) #'markdown-mode #'text-mode)
+  "Parent of `hue-markdown-major-mode'.")
+
 ;;;###autoload
-(define-derived-mode hue-markdown-major-mode
-  (if (fboundp 'markdown-mode) 'markdown-mode 'text-mode)
+(define-derived-mode hue-markdown-major-mode hue-markdown--parent-mode
   "Hue-MD"
   "Major mode for editing Hue Markdown (`.hue.md') files."
   (unless (fboundp 'markdown-mode)

@@ -1,6 +1,6 @@
 {
   "name": "remark-hue",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "remark plugin for Hue Markdown: colored spans, drawn boxes and hue fences",
   "type": "module",
   "exports": {

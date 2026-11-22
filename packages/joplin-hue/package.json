@@ -1,6 +1,6 @@
 {
   "name": "joplin-plugin-hue-md",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Hue MD for Joplin: colored spans, diff spans, key caps, progress bars, multi-state tasks and drawn callout boxes in the note viewer.",
   "author": "spingras",
   "license": "MIT",

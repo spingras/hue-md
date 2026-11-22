@@ -2,6 +2,11 @@
 
 All notable changes to the `hue-md` extension are documented in this file.
 
+## [0.2.5] - 2026-11-22
+
+### Also in this release (other platforms)
+- Emacs: `hue-markdown-mode.el` loads again in current Emacs (29 and 30); it failed to load because of how the major mode picked its parent mode
+
 ## [0.2.4] - 2026-11-22
 
 ### Fixed

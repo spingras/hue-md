@@ -1,6 +1,6 @@
 ---
 title: Hue Markdown Spec
-version: 0.2.4
+version: 0.2.5
 date: 2026-11-15
 license: CC-BY-SA 4.0
 ---

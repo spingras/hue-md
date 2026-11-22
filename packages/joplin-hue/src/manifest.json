@@ -2,7 +2,7 @@
 	"manifest_version": 1,
 	"id": "io.github.spingras.hue-md",
 	"app_min_version": "3.0",
-	"version": "0.2.4",
+	"version": "0.2.5",
 	"name": "Hue MD",
 	"description": "Hue Markdown in the note viewer: colored spans {ok: text}, diff spans, key caps [[Ctrl+C]], progress bars, multi-state tasks and drawn +-- callout boxes, side by side too.",
 	"author": "spingras",
