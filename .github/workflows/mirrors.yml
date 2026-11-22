@@ -1,0 +1,64 @@
+name: Publish plugin mirrors
+
+# Obsidian installs plugins from a repository of their own, so packages/obsidian-hue
+# is published to spingras/hue-md-obsidian. It runs after every successful
+# "Release Hue MD Artifacts" run for a v* tag, from the tagged commit, so the
+# mirror can never run ahead of a release. Run it by hand (dry run by default)
+# to see what would change.
+#
+# Needs the secret MIRROR_DEPLOY_KEY: the private half of an SSH deploy key with
+# write access on spingras/hue-md-obsidian, and on nothing else. The pushed tag
+# starts that repository's own release workflow, which attaches the plugin files.
+
+on:
+  workflow_run:
+    workflows: ["Release Hue MD Artifacts"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only build and show the changes; push nothing"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  obsidian:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'v'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the released commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the mirror and check its own build matches packages/obsidian-hue
+        run: node scripts/build-mirror.js obsidian --out dist/mirror/hue-md-obsidian --check
+
+      - name: Publish to spingras/hue-md-obsidian
+        env:
+          DEPLOY_KEY: ${{ secrets.MIRROR_DEPLOY_KEY }}
+          GITHUB_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          DRY_RUN: ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) && 'true' || 'false' }}
+        run: |
+          key="$RUNNER_TEMP/mirror_deploy_key"
+          if [ -n "$DEPLOY_KEY" ]; then
+            printf '%s\n' "$DEPLOY_KEY" > "$key"
+            chmod 600 "$key"
+            export DEPLOY_KEY_FILE="$key"
+          fi
+          bash scripts/publish-mirror.sh dist/mirror/hue-md-obsidian spingras/hue-md-obsidian
+          rm -f "$key"
