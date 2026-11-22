@@ -73,6 +73,11 @@ if git ls-remote --exit-code --tags origin "refs/tags/$version" >/dev/null; then
   if $changed; then echo "but the generated tree differs from what is on main there"; exit 1; fi
 else
   git tag "$version"
-  git push --quiet --atomic origin main "refs/tags/$version"
+  # main first, the tag in a push of its own: GitHub only starts a workflow for a
+  # tag when the workflow file was already on the repository before that push
+  # (learned at 0.2.6: one push with both left the release workflow unstarted).
+  # A rerun after a failed tag push finds no changes and pushes just the tag.
+  git push --quiet origin main
+  git push --quiet origin "refs/tags/$version"
   echo "Pushed main and tag $version to $repo; its release workflow builds and attaches the plugin files."
 fi

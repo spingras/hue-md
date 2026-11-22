@@ -96,6 +96,9 @@ on:
   push:
     tags:
       - "*"
+  # By hand for a tag whose push did not start this workflow:
+  # gh workflow run release.yml -R spingras/hue-md-obsidian --ref <version>
+  workflow_dispatch:
 
 permissions:
   contents: write
