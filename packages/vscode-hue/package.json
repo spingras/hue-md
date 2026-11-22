@@ -2,7 +2,7 @@
   "name": "hue-md",
   "displayName": "Hue MD",
   "description": "Rich color spans, diff spans, keycaps, progress bars, multi-state tasks, and styled callout boxes (single or side-by-side) for Markdown (.hue.md) with live preview and editor highlighting",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "publisher": "spingras",
   "license": "MIT",
   "icon": "media/icon.png",

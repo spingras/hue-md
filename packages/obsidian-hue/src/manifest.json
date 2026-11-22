@@ -5,6 +5,6 @@
   "minAppVersion": "1.0.0",
   "description": "Readable-raw Markdown extras: colored spans, diff spans, key caps, progress bars, multi-state tasks and drawn callout boxes, single or side by side.",
   "author": "spingras",
-  "authorUrl": "https://github.com/spingras/hue-md",
+  "authorUrl": "https://spingras.io",
   "isDesktopOnly": false
 }

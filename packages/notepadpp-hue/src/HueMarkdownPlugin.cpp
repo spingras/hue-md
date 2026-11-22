@@ -1201,7 +1201,7 @@ void __cdecl cmdOpenDemo() {
 
 void __cdecl cmdAbout() {
     const wchar_t *msg =
-        L"Hue Markdown for Notepad++ (v0.2.5)\n\n"
+        L"Hue Markdown for Notepad++ (v0.2.6)\n\n"
         L"Integrated Side-by-Side Live Preview + In-Editor Syntax Coloring for Hue Markdown (.hue.md).\n\n"
         L"Supported syntax:\n"
         L"  • Spans: {red: text}, {warn: text}, {blue bg-gray: text}, {#c0ffee: hex}\n"

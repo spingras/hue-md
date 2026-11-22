@@ -2,6 +2,13 @@
 
 All notable changes to the `hue-md` extension are documented in this file.
 
+## [0.2.6] - 2026-11-22
+
+### Also in this release (other platforms)
+- Obsidian: the plugin builds its output without `innerHTML` or `outerHTML`, as Obsidian's plugin review asks; notes render exactly as before
+- Obsidian: the plugin is also published to its own repository, `spingras/hue-md-obsidian`, on every release, for the Obsidian community plugin list
+- GitHub browser extension and userscript: the same change, no visible difference
+
 ## [0.2.5] - 2026-11-22
 
 ### Also in this release (other platforms)

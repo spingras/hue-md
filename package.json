@@ -1,6 +1,6 @@
 {
   "name": "hue-md",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Hue Markdown (.hue.md): readable-raw color spans, diff spans, keycaps, progress bars, multi-state tasks, and callout boxes (single or side-by-side) — parser, CLI, terminal viewer & slides, and GitHub downgrade",
   "author": "spingras",
   "license": "MIT",
